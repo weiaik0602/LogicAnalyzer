@@ -39,13 +39,15 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "stm32f1xx_hal.h"
-
+#include <stdio.h>
 /* USER CODE BEGIN Includes */
 
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
 ADC_HandleTypeDef hadc1;
+
+UART_HandleTypeDef huart1;
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
@@ -54,8 +56,10 @@ ADC_HandleTypeDef hadc1;
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
+extern void initialise_monitor_handles(void);
 static void MX_GPIO_Init(void);
 static void MX_ADC1_Init(void);
+static void MX_USART1_UART_Init(void);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
@@ -74,7 +78,7 @@ static void MX_ADC1_Init(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-
+	initialise_monitor_handles();
   /* USER CODE END 1 */
 
   /* MCU Configuration----------------------------------------------------------*/
@@ -96,6 +100,7 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_ADC1_Init();
+  MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
 
 //  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, GPIO_PIN_SET);
@@ -107,12 +112,29 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  	int y=HAL_ADC_GetValue(&hadc1);
-  	volatile double voltage=y*0.00079;
+//  	int y=HAL_ADC_GetValue(&hadc1);
+//  	volatile double voltage=y*0.00079;
+  //	volatile int time=HAL_GetTick();
+  	int y;
   while (1)
   {
-	  volatile int x;
-	  //x=HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_9);
+
+//	  volatile int x;
+//	  volatile int time=HAL_GetTick();
+
+	  HAL_ADC_Start(&hadc1);
+	  HAL_ADC_PollForConversion(&hadc1, 10);
+	  y=HAL_ADC_GetValue(&hadc1);
+
+	  char tests[7];
+	  //itoa(y,tests,7);
+
+	  char str[4];
+	  sprintf(str, "%d", y);
+	  //printf("%s\n",str);
+	  printf("%s		%d	\n",str,y);
+  HAL_Delay(500);
+//	  HAL_UART_Transmit(&huart1, &tests, 6, 0xFFF);
 
   /* USER CODE END WHILE */
 
@@ -210,6 +232,25 @@ static void MX_ADC1_Init(void)
 
 }
 
+/* USART1 init function */
+static void MX_USART1_UART_Init(void)
+{
+
+  huart1.Instance = USART1;
+  huart1.Init.BaudRate = 115200;
+  huart1.Init.WordLength = UART_WORDLENGTH_8B;
+  huart1.Init.StopBits = UART_STOPBITS_1;
+  huart1.Init.Parity = UART_PARITY_ODD;
+  huart1.Init.Mode = UART_MODE_TX;
+  huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart1.Init.OverSampling = UART_OVERSAMPLING_16;
+  if (HAL_UART_Init(&huart1) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+}
+
 /** Configure pins as 
         * Analog 
         * Input 
@@ -225,6 +266,7 @@ static void MX_GPIO_Init(void)
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOD_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin : PA9 */
   GPIO_InitStruct.Pin = GPIO_PIN_9;
