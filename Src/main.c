@@ -39,9 +39,9 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "stm32f1xx_hal.h"
-#include <stdio.h>
-/* USER CODE BEGIN Includes */
 
+/* USER CODE BEGIN Includes */
+#include <stdio.h>
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -56,14 +56,14 @@ UART_HandleTypeDef huart1;
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
-extern void initialise_monitor_handles(void);
 static void MX_GPIO_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_USART1_UART_Init(void);
 
+
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
-
+extern void initialise_monitor_handles(void);
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
@@ -127,14 +127,11 @@ int main(void)
 	  y=HAL_ADC_GetValue(&hadc1);
 
 	  char tests[7];
-	  //itoa(y,tests,7);
 
-	  char str[4];
-	  sprintf(str, "%d", y);
-	  //printf("%s\n",str);
-	  printf("%s		%d	\n",str,y);
-  HAL_Delay(500);
-//	  HAL_UART_Transmit(&huart1, &tests, 6, 0xFFF);
+
+	  char str[6];
+	  sprintf(str, "%d\n", y);
+	  HAL_UART_Transmit(&huart1, &str, 6, 0xFFF);
 
   /* USER CODE END WHILE */
 

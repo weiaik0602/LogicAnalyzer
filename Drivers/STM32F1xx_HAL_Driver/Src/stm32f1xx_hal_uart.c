@@ -712,78 +712,7 @@ HAL_StatusTypeDef HAL_UART_Transmit(UART_HandleTypeDef *huart, uint8_t *pData, u
     return HAL_BUSY;
   }
 }
-HAL_StatusTypeDef HAL_UART_Transmit_INT(UART_HandleTypeDef *huart, double pData, uint16_t Size, uint32_t Timeout)
-{
-  double tmp;
-  uint32_t tickstart = 0U;
 
-  /* Check that a Tx process is not already ongoing */
-  if(huart->gState == HAL_UART_STATE_READY)
-  {
-    if((pData == 0) || (Size == 0U))
-    {
-      return  HAL_ERROR;
-    }
-
-    /* Process Locked */
-    __HAL_LOCK(huart);
-
-    huart->ErrorCode = HAL_UART_ERROR_NONE;
-    huart->gState = HAL_UART_STATE_BUSY_TX;
-
-    /* Init tickstart for timeout managment */
-    tickstart = HAL_GetTick();
-
-    huart->TxXferSize = Size;
-    huart->TxXferCount = Size;
-    while(huart->TxXferCount > 0U)
-    {
-      huart->TxXferCount--;
-      if(huart->Init.WordLength == UART_WORDLENGTH_9B)
-      {
-        if(UART_WaitOnFlagUntilTimeout(huart, UART_FLAG_TXE, RESET, tickstart, Timeout) != HAL_OK)
-        {
-          return HAL_TIMEOUT;
-        }
-        tmp =  pData;
-        huart->Instance->DR = tmp;
-//        if(huart->Init.Parity == UART_PARITY_NONE)
-//        {
-//          pData +=2U;
-//        }
-//        else
-//        {
-//          pData +=1U;
-//        }
-      }
-//      else
-//      {
-//        if(UART_WaitOnFlagUntilTimeout(huart, UART_FLAG_TXE, RESET, tickstart, Timeout) != HAL_OK)
-//        {
-//          return HAL_TIMEOUT;
-//        }
-//        huart->Instance->DR = (*pData++ & (uint8_t)0xFF);
-//      }
-    }
-
-    if(UART_WaitOnFlagUntilTimeout(huart, UART_FLAG_TC, RESET, tickstart, Timeout) != HAL_OK)
-    {
-      return HAL_TIMEOUT;
-    }
-
-    /* At end of Tx process, restore huart->gState to Ready */
-    huart->gState = HAL_UART_STATE_READY;
-
-    /* Process Unlocked */
-    __HAL_UNLOCK(huart);
-
-    return HAL_OK;
-  }
-  else
-  {
-    return HAL_BUSY;
-  }
-}
 /**
   * @brief  Receive an amount of data in blocking mode. 
   * @param  huart: pointer to a UART_HandleTypeDef structure that contains
