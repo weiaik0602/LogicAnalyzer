@@ -7,7 +7,7 @@ ipy = get_ipython()
 if ipy is not None:
     ipy.run_line_magic('matplotlib', 'inline')
 import matplotlib.pyplot as plt
-dev = usb.core.find(idVendor=0x046D, idProduct=0xC07E)
+
 
 units=input("pls input ur unit C: ")
 units=units.upper()
