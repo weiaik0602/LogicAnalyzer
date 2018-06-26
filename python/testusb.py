@@ -2,7 +2,7 @@ import usb.core
 import usb.util
 
 def main():
-    device = usb.core.find(find_all=True, idVendor=0x1A86, idProduct=0x7523)
+    device = usb.core.find(find_all=True, idVendor=0x0483, idProduct=0x5740)
     #print(usb.core.show_devices())
     if device is None:
         print('Device not found')
@@ -18,13 +18,7 @@ def main():
     data = None
     collected=0
     attempts=50
-    #stop_request=input("Press Enter to stop it")
-    longdata="abc;efg;egw;sdg"
-    shortdata=longdata.split(';')
-    s1=shortdata[0]
-    s2=shortdata[1]
-    print(s1)
-    print(s2)
+
     while collected<50:
         try:
             data = device.read(endpoint.bEndpointAddress,

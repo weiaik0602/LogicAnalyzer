@@ -1,38 +1,87 @@
-import matplotlib.pylab as plt
+# Uncomment the next two lines if you want to save the animation
+#import matplotlib
+#matplotlib.use("Agg")
+
+import numpy
+from matplotlib.pylab import *
+from mpl_toolkits.axes_grid1 import host_subplot
 import matplotlib.animation as animation
-import numpy as np
-
-#create image with format (time,x,y)
-image = np.random.rand(100,10,10)
-
-#setup figure
-fig = plt.figure()
-ax1 = fig.add_subplot(1,2,1)
-ax2 = fig.add_subplot(1,2,2)
-#set up viewing window (in this case the 25 most recent values)
-repeat_length = (np.shape(image)[0]+1)/4
-ax2.set_xlim([0,repeat_length])
-#ax2.autoscale_view()
-ax2.set_ylim([np.amin(image[:,5,5]),np.amax(image[:,5,5])])
-
-#set up list of images for animation
 
 
-im = ax1.imshow(image[0,:,:])
-im2, = ax2.plot([], [], color=(0,0,1))
 
-def func(n):
-    im.set_data(image[n,:,:])
+# Sent for figure
+font = {'size'   : 9}
+matplotlib.rc('font', **font)
 
-    im2.set_xdata(np.arange(n))
-    im2.set_ydata(image[0:n, 5, 5])
-    if n>repeat_length:
-        lim = ax2.set_xlim(n-repeat_length, n)
-    else:
-        # makes it look ok when the animation loops
-        lim = ax2.set_xlim(0, repeat_length)
-    return im, im2
+# Setup figure and subplots
+f0 = figure(num = 0, figsize = (12, 8))#, dpi = 100)
+f0.suptitle("Logic Analyzer", fontsize=12)
+ax01 = subplot2grid((2, 2), (0, 0))
 
-ani = animation.FuncAnimation(fig, func, frames=image.shape[0], interval=30, blit=False)
+# Set titles of subplots
+ax01.set_title('Voltage vs Time')
+
+# set y-limits
+ax01.set_ylim(0,3.3)
+
+# sex x-limits
+ax01.set_xlim(0,5.0)
+
+# Turn on grids
+ax01.grid(True)
+
+# set label names
+ax01.set_xlabel("Time")
+ax01.set_ylabel("Voltage")
+
+# Data Placeholders
+yp1=zeros(0)
+# yv1=zeros(0)
+yp2=zeros(0)
+# yv2=zeros(0)
+t=zeros(0)
+
+# set plots
+p011, = ax01.plot(t,yp1,'b-', label="port1")
+p012, = ax01.plot(t,yp2,'g-', label="line2")
+
+# set lagends
+ax01.legend([p011], [p011.get_label()])
+
+# Data Update
+xmin = 0.0
+xmax = 5.0
+x = 0.00
+
+def updateData(self):
+	global x
+	global yp1
+	global yp2
+	global t
+
+	tmpp1 = 1 + 1
+	yp1=append(yp1,tmpp1)
+	yp2=append(yp2,0.5*tmpp1)
+	t=append(t,x)
+
+	x += 0.05
+
+	p011.set_data(t,yp1)
+	p012.set_data(t,yp2)
+
+
+
+	if x >= xmax-1.00:
+		p011.axes.set_xlim(x-xmax+1.0,x+1.0)
+
+
+	return p011, p012,# p021, p022, p031, p032
+
+# interval: draw new frame every 'interval' ms
+# frames: number of frames to draw
+simulation = animation.FuncAnimation(f0, updateData, blit=False, frames=200, interval=20, repeat=False)
+
+# Uncomment the next line if you want to save the animation
+#simulation.save(filename='sim.mp4',fps=30,dpi=300)
 
 plt.show()

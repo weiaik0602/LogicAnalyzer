@@ -139,10 +139,13 @@ int main(void)
 
 	  char tests[7];
 
-
+	  //USBD_Start(&hUsbDeviceFS);
 	  char str[6];
 	  sprintf(str, "%d\n", y);
+	  CDC_Transmit_FS("Hello\n", 8);
 	  HAL_UART_Transmit(&huart1, &str, 6, 0xFFF);
+	  //HAL_Delay(200);
+	  //USBD_Stop(&hUsbDeviceFS);
 //	  /USB_WritePacket(&hpcd_USB_FS,&str, 6, 6);
   /* USER CODE END WHILE */
 
