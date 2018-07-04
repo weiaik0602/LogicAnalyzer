@@ -1,8 +1,21 @@
 import usb.core
 import usb.util
+import usb.backend.libusb0 as libusb0
+import numpy
+import datetime
+from datetime import datetime, date
 
+from matplotlib.pylab import *
+from mpl_toolkits.axes_grid1 import host_subplot
+
+from ctypes import*
+# give location of dll
+backend = usb.backend.libusb0.get_backend(find_library=lambda x: "C:\\WINDOWS\\system32\\libusb-1.0.dll")
+
+from struct import *
 def main():
-    device=usb.core.find(idVendor=0x0483, idProduct=0x5740)
+    array=zeros(0)
+    device=usb.core.find(idVendor=0x0483, idProduct=0x5740,backend=backend)
 
 
     if device is None:
@@ -11,7 +24,37 @@ def main():
         print('Found')
         #print(device)
         device.set_configuration()
-    #     endpoint = device[0][(0, 0)][0]
+        msg = 'test'
+        device.write(1, msg, 100)
+        attempt=0
+        while True:
+            ret = device.read(0x81, 3, 100)
+            sret = ''.join([chr(x) for x in ret])
+
+            #sret = bytes(sret, 'utf-8')
+
+            sret.join('%02x' % ord(c) for c in sret)
+            #sret = bytes(sret, 'utf-8')
+            time=(ret[2]<<8)|ret[1]
+
+            print(time/1000)
+            data=ret[0]
+            #print(data)
+            #data=bytes(sret[1],'utf-8')
+            #time2 = time.decode()
+
+            #print(ret[1])
+            #print(data)
+
+
+            #print(sret)
+            # time=(sret&0xF0)>>8
+            # print(time)
+            #sret=ord(sret)
+
+            array=append(array,sret)
+            attempt+=1
+    #   endpoint = device[0][(0, 0)][0]
     # collected = 0
     # attempts = 50
     # while collected<attempts:

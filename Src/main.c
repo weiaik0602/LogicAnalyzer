@@ -53,6 +53,7 @@
 
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
+#include "usbd_cdc_if.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -142,7 +143,17 @@ int main(void)
 	  //USBD_Start(&hUsbDeviceFS);
 	  char str[6];
 	  sprintf(str, "%d\n", y);
-	  CDC_Transmit_FS("Hello\n", 8);
+	  uint16_t time=HAL_GetTick();
+	  uint8_t data=HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_9);
+	  int USB_Send_data=time<<8|data;
+
+
+	  if(USB_CDC_MYSTATE==1){
+		  for(int i=0;i<50;i++)
+
+			  CDC_Transmit_FS(&USB_Send_data, 3);
+
+	  }
 	  HAL_UART_Transmit(&huart1, &str, 6, 0xFFF);
 	  //HAL_Delay(200);
 	  //USBD_Stop(&hUsbDeviceFS);
