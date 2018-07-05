@@ -58,7 +58,8 @@
 
 /* Private variables ---------------------------------------------------------*/
 ADC_HandleTypeDef hadc1;
-DMA_HandleTypeDef hdma_adc1;
+
+UART_HandleTypeDef huart1;
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
@@ -68,8 +69,8 @@ uint32_t adc[2], buffer[2];  // define variables
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
-static void MX_DMA_Init(void);
 static void MX_ADC1_Init(void);
+static void MX_USART1_UART_Init(void);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
@@ -109,8 +110,8 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_DMA_Init();
   MX_ADC1_Init();
+  MX_USART1_UART_Init();
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 2 */
 
@@ -130,36 +131,35 @@ int main(void)
   {
 //	  HAL_GPIO_TogglePin (GPIOC, GPIO_PIN_13);
 //	  HAL_Delay (1000);
-//	  int adc1,adc2;
+	  uint16_t adc1,adc2;
 //
 //
-//	  HAL_ADC_Start(&hadc1);
-//	  HAL_ADC_PollForConversion(&hadc1, 100);
-//	  adc1 = HAL_ADC_GetValue(&hadc1);
-//
-//	  HAL_ADC_PollForConversion(&hadc1, 100);
-//	  adc2 = HAL_ADC_GetValue(&hadc1);
-//
-//	  HAL_ADC_Stop (&hadc1);
+	  HAL_ADC_Start(&hadc1);
+	  HAL_ADC_PollForConversion(&hadc1, 100);
+	  adc1 = HAL_ADC_GetValue(&hadc1);
+
+	  HAL_ADC_PollForConversion(&hadc1, 100);
+	  adc2 = HAL_ADC_GetValue(&hadc1);
+
+	  HAL_ADC_Stop (&hadc1);
 //
 //	  printf("channel0: %d		channel1: %d\n",adc1,adc2);
 //
 //
-	  uint32_t  time=HAL_GetTick();
+	  uint16_t  time=HAL_GetTick();
 	  //printf("%d\n", time);
-//	  uint8_t data=HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_9);
-//	  int USB_Send_data=time<<8|data;
+	  uint8_t data=HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_9);
 
+	  uint8_t USB_Send_data[]={(time>>8),time,(adc1>>8),adc1};
 
-
-	  //printf("%d\n",USB_Send_data);
-//	  if(USB_CDC_MYSTATE==1)
-//	  {
-//		  for(int i=0;i<50;i++)
-//		  {
-//			  CDC_Transmit_FS(&USB_Send_data, 3);
-//		  }
-//	  }
+	 //printf("%x%x	,%x%x\n",USB_Send_data[0],USB_Send_data[1],USB_Send_data[2],USB_Send_data[3]);
+	  if(USB_CDC_MYSTATE==1)
+	  {
+		  for(int i=0;i<50;i++)
+		  {
+			  CDC_Transmit_FS(&USB_Send_data, 4);
+		  }
+	  }
 
   /* USER CODE END WHILE */
 
@@ -238,12 +238,12 @@ static void MX_ADC1_Init(void)
     /**Common config 
     */
   hadc1.Instance = ADC1;
-  hadc1.Init.ScanConvMode = ADC_SCAN_ENABLE;
-  hadc1.Init.ContinuousConvMode = ENABLE;
+  hadc1.Init.ScanConvMode = ADC_SCAN_DISABLE;
+  hadc1.Init.ContinuousConvMode = DISABLE;
   hadc1.Init.DiscontinuousConvMode = DISABLE;
   hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
   hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
-  hadc1.Init.NbrOfConversion = 2;
+  hadc1.Init.NbrOfConversion = 1;
   if (HAL_ADC_Init(&hadc1) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
@@ -259,29 +259,24 @@ static void MX_ADC1_Init(void)
     _Error_Handler(__FILE__, __LINE__);
   }
 
-    /**Configure Regular Channel 
-    */
-  sConfig.Channel = ADC_CHANNEL_1;
-  sConfig.Rank = ADC_REGULAR_RANK_2;
-  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+}
+
+/* USART1 init function */
+static void MX_USART1_UART_Init(void)
+{
+
+  huart1.Instance = USART1;
+  huart1.Init.BaudRate = 115200;
+  huart1.Init.WordLength = UART_WORDLENGTH_8B;
+  huart1.Init.StopBits = UART_STOPBITS_1;
+  huart1.Init.Parity = UART_PARITY_ODD;
+  huart1.Init.Mode = UART_MODE_TX;
+  huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart1.Init.OverSampling = UART_OVERSAMPLING_16;
+  if (HAL_UART_Init(&huart1) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
-
-}
-
-/** 
-  * Enable DMA controller clock
-  */
-static void MX_DMA_Init(void) 
-{
-  /* DMA controller clock enable */
-  __HAL_RCC_DMA1_CLK_ENABLE();
-
-  /* DMA interrupt init */
-  /* DMA1_Channel1_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA1_Channel1_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(DMA1_Channel1_IRQn);
 
 }
 
@@ -298,24 +293,14 @@ static void MX_GPIO_Init(void)
   GPIO_InitTypeDef GPIO_InitStruct;
 
   /* GPIO Ports Clock Enable */
-  __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
-
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
-
-  /*Configure GPIO pin : PC13 */
-  GPIO_InitStruct.Pin = GPIO_PIN_13;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+  __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin : PA9 */
   GPIO_InitStruct.Pin = GPIO_PIN_9;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
 }

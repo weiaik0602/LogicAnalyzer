@@ -38,7 +38,7 @@ ax01.set_ylim(0,5)
 
 
 # sex x-limits
-ax01.set_xlim(0,1000.0)
+ax01.set_xlim(0,100.0)
 
 
 # Turn on grids
@@ -63,7 +63,7 @@ ax01.legend([p011], [p011.get_label()])
 
 # Data Update
 xmin = 0.0
-xmax = 1000.0
+xmax = 100.0
 x = 0.0
 
 def updateData(self):
@@ -71,23 +71,25 @@ def updateData(self):
     global yp1
     global t
 
-    ret = device.read(0x81, 3, 100)
-    time=(ret[2]<<8)|ret[1]
-    data=ret[0]
-    data=data*3.3
+    msg = 'test'
+    device.write(1, msg, 100)
+    ret = device.read(0x81, 4, 100)
+    time = (ret[0] << 8) | ret[1]
+    data=(ret[2]<<8)|ret[3]
+    data=data*0.000806
     yp1=append(yp1,data)
     stime=time/1000
-    t=append(t,time)
+    t=append(t,x)
 
-
+    x+=0.5
 
     p011.set_data(t,yp1)
 
 
 
 
-    if time >= xmax-100.00:
-        p011.axes.set_xlim(time-xmax+100.0,time+100.0)
+    if x >= xmax-10.00:
+        p011.axes.set_xlim(x-xmax+10.0,x+10.0)
 
     return p011
 

@@ -25,34 +25,17 @@ def main():
         #print(device)
         device.set_configuration()
         msg = 'test'
-        device.write(1, msg, 100)
+        device.write(1, msg, 500)
         attempt=0
         while True:
-            ret = device.read(0x81, 3, 100)
-            sret = ''.join([chr(x) for x in ret])
+            ret = device.read(0x81, 3, 500)
 
-            #sret = bytes(sret, 'utf-8')
+            time=(ret[0]<<8)|ret[1]
 
-            sret.join('%02x' % ord(c) for c in sret)
-            #sret = bytes(sret, 'utf-8')
-            time=(ret[2]<<8)|ret[1]
+            #print(time)
+            data=ret[2]
+            print(data)
 
-            print(time/1000)
-            data=ret[0]
-            #print(data)
-            #data=bytes(sret[1],'utf-8')
-            #time2 = time.decode()
-
-            #print(ret[1])
-            #print(data)
-
-
-            #print(sret)
-            # time=(sret&0xF0)>>8
-            # print(time)
-            #sret=ord(sret)
-
-            array=append(array,sret)
             attempt+=1
     #   endpoint = device[0][(0, 0)][0]
     # collected = 0
