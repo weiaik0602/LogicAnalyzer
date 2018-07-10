@@ -84,7 +84,7 @@ p022, = ax02.plot(t,yv2,'g-', label="yv2")
 
 p031, = ax03.plot(t,yp1,'b-', label="yp1")
 p032, = ax04.plot(t,yv1,'g-', label="yv1")
-
+print(type(p011))
 # set lagends
 ax01.legend([p011,p012], [p011.get_label(),p012.get_label()])
 ax02.legend([p021,p022], [p021.get_label(),p022.get_label()])

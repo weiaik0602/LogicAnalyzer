@@ -25,16 +25,16 @@ def main():
         #print(device)
         device.set_configuration()
         msg = 'test'
-        device.write(1, msg, 500)
+        device.write(1, msg, 150)
         attempt=0
         while True:
-            ret = device.read(0x81, 3, 500)
-
-            time=(ret[0]<<8)|ret[1]
-
-            #print(time)
-            data=ret[2]
-            print(data)
+            ret = device.read(0x81, 30, 150)
+            print(list(ret))
+            # time=(ret[0]<<8)|ret[1]
+            #
+            # #print(time)
+            # data=ret[2]
+            # print(data)
 
             attempt+=1
     #   endpoint = device[0][(0, 0)][0]

@@ -20,45 +20,53 @@ else:
 
 
 # Sent for figure
-font = {'size'   : 9}
+font = {'size': 9}
 matplotlib.rc('font', **font)
 
 # Setup figure and subplots
 f0 = figure(num = 0, figsize = (12, 8))#, dpi = 100)
 f0.suptitle("Logic Analyzer", fontsize=12)
-ax01 = subplot2grid((2, 2), (0, 0))
+
+dp00 = subplot2grid((2, 2), (0, 0))
+ap00 = subplot2grid((2, 2), (0, 1))
+
+
 #tight_layout()
 
 # Set titles of subplots
-ax01.set_title('Voltage vs Time')
-
+dp00.set_title('Voltage vs Time')
+ap00.set_title('Voltage vs Time')
 
 # set y-limits
-ax01.set_ylim(0,5)
-
+dp00.set_ylim(0,5)
+ap00.set_ylim(0,5)
 
 # sex x-limits
-ax01.set_xlim(0,100.0)
-
+dp00.set_xlim(0,100.0)
+ap00.set_xlim(0,100.0)
 
 # Turn on grids
-ax01.grid(True)
-
+dp00.grid(True)
+ap00.grid(True)
 
 # set label names
-ax01.set_xlabel("Time")
-ax01.set_ylabel("Voltage")
-
+dp00.set_xlabel("Time")
+dp00.set_ylabel("Voltage")
+ap00.set_xlabel("Time")
+ap00.set_ylabel("Voltage")
 
 # Data Placeholders
-yp1=zeros(0)
+dataDP00=zeros(0)
+dataAP00=zeros(0)
 t=zeros(0)
 
 # set plots
-p011, = ax01.plot(t,yp1,'b-', label="DP0")
+pDP00, = dp00.plot(t,dataDP00,'b-', label="DP0")
+pAP00, = ap00.plot(t,dataAP00,'g-', label="AP0")
 
 # set lagends
-ax01.legend([p011], [p011.get_label()])
+dp00.legend([pDP00], [pDP00.get_label()])
+ap00.legend([pAP00], [pAP00.get_label()])
 
 
 # Data Update
@@ -68,30 +76,37 @@ x = 0.0
 
 def updateData(self):
     global x
-    global yp1
+    global dataDP00
+    global dataAP00
     global t
 
-    msg = 'test'
-    device.write(1, msg, 100)
-    ret = device.read(0x81, 4, 100)
+    # msg = 'test'
+    # device.write(1, msg, 100)
+    ret = device.read(0x81, 5, 100)
     time = (ret[0] << 8) | ret[1]
-    data=(ret[2]<<8)|ret[3]
-    data=data*0.000806
-    yp1=append(yp1,data)
+    dDP00 = ret[2]
+    dAP00=(ret[3]<<8)|ret[4]
+
+    dAP00=dAP00*0.000806
+    dDP00=dDP00*3.3
+
+    dataDP00=append(dataDP00,dDP00)
+    dataAP00=append(dataAP00,dAP00)
     stime=time/1000
     t=append(t,x)
 
     x+=0.5
 
-    p011.set_data(t,yp1)
-
+    pDP00.set_data(t,dataDP00)
+    pAP00.set_data(t,dataAP00)
 
 
 
     if x >= xmax-10.00:
-        p011.axes.set_xlim(x-xmax+10.0,x+10.0)
+        pDP00.axes.set_xlim(x-xmax+10.0, x+10.0)
+        pAP00.axes.set_xlim(x - xmax + 10.0, x + 10.0)
 
-    return p011
+    return pDP00,pAP00
 
 # interval: draw new frame every 'interval' ms
 # frames: number of frames to draw
