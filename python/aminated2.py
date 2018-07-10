@@ -1,144 +1,89 @@
-# Uncomment the next two lines if you want to save the animation
-#import matplotlib
-#matplotlib.use("Agg")
+from numpy import arange, sin, pi, float, size
 
-import numpy
-from matplotlib.pylab import *
-from mpl_toolkits.axes_grid1 import host_subplot
-import matplotlib.animation as animation
-import usb.core
-import usb.util
-import usb.backend.libusb0 as libusb0
+import matplotlib
+matplotlib.use('WXAgg')
+from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg
+from matplotlib.figure import Figure
 
-#define USB backend
-from ctypes import*
-backend = usb.backend.libusb0.get_backend(find_library=lambda x: "C:\\WINDOWS\\system32\\libusb-1.0.dll")
+import wx
 
-#find device(STM32 CDC device)	idVendor=0x0483, idProduct=0x5740
-device=usb.core.find(idVendor=0x0483, idProduct=0x5740,backend=backend)
-if device is None:
-    raise ValueError('No device found.')
-else:
-    print("Device is found")
-    #device set config
-    device.set_configuration()
+class MyFrame(wx.Frame):
+    def __init__(self, parent, id):
+        wx.Frame.__init__(self,parent, id, 'scrollable plot',
+                style=wx.DEFAULT_FRAME_STYLE ^ wx.RESIZE_BORDER,
+                size=(800, 400))
+        self.panel = wx.Panel(self, -1)
 
+        self.fig = Figure((5, 4), 75)
+        self.canvas = FigureCanvasWxAgg(self.panel, -1, self.fig)
+        self.scroll_range = 400
+        self.canvas.SetScrollbar(wx.HORIZONTAL, 0, 5,
+                                 self.scroll_range)
 
-# Sent for figure
-font = {'size'   : 9}
-matplotlib.rc('font', **font)
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(self.canvas, -1, wx.EXPAND)
 
-# Setup figure and subplots
-f0 = figure(num = 0, figsize = (12, 8))#, dpi = 100)
-f0.suptitle("Oscillation decay", fontsize=12)
-ax01 = subplot2grid((2, 2), (0, 0))
-ax02 = subplot2grid((2, 2), (0, 1))
-ax03 = subplot2grid((2, 2), (1, 0), colspan=2, rowspan=1)
-ax04 = ax03.twinx()
-#tight_layout()
+        self.panel.SetSizer(sizer)
+        self.panel.Fit()
 
-# Set titles of subplots
-ax01.set_title('Position vs Time')
-ax02.set_title('Velocity vs Time')
-ax03.set_title('Position and Velocity vs Time')
+        self.init_data()
+        self.init_plot()
 
-# set y-limits
-ax01.set_ylim(0,2)
-ax02.set_ylim(-6,6)
-ax03.set_ylim(-0,5)
-ax04.set_ylim(-10,10)
+        self.canvas.Bind(wx.EVT_SCROLLWIN, self.OnScrollEvt)
 
-# sex x-limits
-ax01.set_xlim(0,5.0)
-ax02.set_xlim(0,5.0)
-ax03.set_xlim(0,5.0)
-ax04.set_xlim(0,5.0)
+    def init_data(self):
 
-# Turn on grids
-ax01.grid(True)
-ax02.grid(True)
-ax03.grid(True)
+        # Generate some data to plot:
+        self.dt = 0.01
+        self.t = arange(0,5,self.dt)
+        self.x = sin(2*pi*self.t)
 
-# set label names
-ax01.set_xlabel("x")
-ax01.set_ylabel("py")
-ax02.set_xlabel("t")
-ax02.set_ylabel("vy")
-ax03.set_xlabel("t")
-ax03.set_ylabel("py")
-ax04.set_ylabel("vy")
+        # Extents of data sequence:
+        self.i_min = 0
+        self.i_max = len(self.t)
 
-# Data Placeholders
-yp1=zeros(0)
-yv1=zeros(0)
-yp2=zeros(0)
-yv2=zeros(0)
-t=zeros(0)
+        # Size of plot window:
+        self.i_window = 100
 
-# set plots
-p011, = ax01.plot(t,yp1,'b-', label="yp1")
-p012, = ax01.plot(t,yp2,'g-', label="yp2")
+        # Indices of data interval to be plotted:
+        self.i_start = 0
+        self.i_end = self.i_start + self.i_window
 
-p021, = ax02.plot(t,yv1,'b-', label="yv1")
-p022, = ax02.plot(t,yv2,'g-', label="yv2")
+    def init_plot(self):
+        self.axes = self.fig.add_subplot(111)
+        self.plot_data = \
+                  self.axes.plot(self.t[self.i_start:self.i_end],
+                                 self.x[self.i_start:self.i_end])[0]
 
-p031, = ax03.plot(t,yp1,'b-', label="yp1")
-p032, = ax04.plot(t,yv1,'g-', label="yv1")
+    def draw_plot(self):
 
-# set lagends
-ax01.legend([p011,p012], [p011.get_label(),p012.get_label()])
-ax02.legend([p021,p022], [p021.get_label(),p022.get_label()])
-ax03.legend([p031,p032], [p031.get_label(),p032.get_label()])
+        # Update data in plot:
+        self.plot_data.set_xdata(self.t[self.i_start:self.i_end])
+        self.plot_data.set_ydata(self.x[self.i_start:self.i_end])
 
-# Data Update
-xmin = 0.0
-xmax = 5.0
-x = 0.0
+        # Adjust plot limits:
+        self.axes.set_xlim((min(self.t[self.i_start:self.i_end]),
+                           max(self.t[self.i_start:self.i_end])))
+        self.axes.set_ylim((min(self.x[self.i_start:self.i_end]),
+                            max(self.x[self.i_start:self.i_end])))
 
-def updateData(self):
-    global x
-    global yp1
-    global yv1
-    global yp2
-    global yv2
-    global t
+        # Redraw:
+        self.canvas.draw()
 
-    ret = device.read(0x81, 1, 100)
-    sret = ''.join([chr(x) for x in ret])
-    sret = bytes(sret, 'utf-8')
-    sret=ord(sret)
-    tmpp1 = 1 + exp(-x) *sin(2 * pi * x)
-    tmpv1 = - exp(-x) * sin(2 * pi * x) + exp(-x) * cos(2 * pi * x) * 2 * pi
-    yp1=append(yp1,sret)
-    yv1=append(yv1,sret)
-    yp2=append(yp2,0.5*tmpp1)
-    yv2=append(yv2,0.5*tmpp1)
-    t=append(t,x)
+    def OnScrollEvt(self, event):
 
-    x += 0.05
+     # Update the indices of the plot:
+        self.i_start = self.i_min + event.GetPosition()
+        self.i_end = self.i_min + self.i_window + event.GetPosition()
+        self.draw_plot()
 
-    p011.set_data(t,yp1)
-    p012.set_data(t,yp2)
+class MyApp(wx.App):
+    def OnInit(self):
+        self.frame = MyFrame(parent=None,id=-1)
+        self.frame.Show()
+        self.SetTopWindow(self.frame)
+        return True
 
-    p021.set_data(t,yv1)
-    p022.set_data(t,yv2)
-
-    p031.set_data(t,yp1)
-    p032.set_data(t,yv1)
-
-    if x >= xmax-1.00:
-        p011.axes.set_xlim(x-xmax+1.0,x+1.0)
-        p021.axes.set_xlim(x-xmax+1.0,x+1.0)
-        p031.axes.set_xlim(x-xmax+1.0,x+1.0)
-        p032.axes.set_xlim(x-xmax+1.0,x+1.0)
-
-    return p011, p012, p021, p022, p031, p032
-
-# interval: draw new frame every 'interval' ms
-# frames: number of frames to draw
-simulation = animation.FuncAnimation(f0, updateData, blit=False, frames=200, interval=20, repeat=False)
-
-# Uncomment the next line if you want to save the animation
-#simulation.save(filename='sim.mp4',fps=30,dpi=300)
-
-plt.show()
+if __name__ == '__main__':
+    app = MyApp()
+    app.MainLoop()

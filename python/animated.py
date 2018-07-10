@@ -20,76 +20,130 @@ else:
 
 
 # Sent for figure
-font = {'size'   : 9}
+font = {'size': 9}
 matplotlib.rc('font', **font)
 
 # Setup figure and subplots
 f0 = figure(num = 0, figsize = (12, 8))#, dpi = 100)
 f0.suptitle("Logic Analyzer", fontsize=12)
-ax01 = subplot2grid((2, 2), (0, 0))
+
+dp00 = subplot2grid((2, 2), (0, 0))
+dp01 = subplot2grid((2, 2), (1, 0))
+
+ap00 = subplot2grid((2, 2), (0, 1))
+ap01 = subplot2grid((2, 2), (1, 1))
+
 #tight_layout()
 
 # Set titles of subplots
-ax01.set_title('Voltage vs Time')
+dp00.set_title('Voltage vs Time')
+dp01.set_title('Voltage vs Time')
+ap00.set_title('Voltage vs Time')
+ap01.set_title('Voltage vs Time')
 
 
 # set y-limits
-ax01.set_ylim(0,5)
-
+dp00.set_ylim(0,5)
+ap00.set_ylim(0,5)
+dp01.set_ylim(0,5)
+ap01.set_ylim(0,5)
 
 # sex x-limits
-ax01.set_xlim(0,1000.0)
+dp00.set_xlim(0,10.0)
+ap00.set_xlim(0,10.0)
+dp01.set_xlim(0,10.0)
+ap01.set_xlim(0,10.0)
+
 
 
 # Turn on grids
-ax01.grid(True)
+dp00.grid(True)
+ap00.grid(True)
+dp01.grid(True)
+ap01.grid(True)
 
 
 # set label names
-ax01.set_xlabel("Time")
-ax01.set_ylabel("Voltage")
-
+dp00.set_xlabel("Time")
+dp00.set_ylabel("Voltage")
+ap00.set_xlabel("Time")
+ap00.set_ylabel("Voltage")
+dp01.set_xlabel("Time")
+dp01.set_ylabel("Voltage")
+ap01.set_xlabel("Time")
+ap01.set_ylabel("Voltage")
 
 # Data Placeholders
-yp1=zeros(0)
+dataDP00=zeros(0)
+dataAP00=zeros(0)
+dataDP01=zeros(0)
+dataAP01=zeros(0)
 t=zeros(0)
 
 # set plots
-p011, = ax01.plot(t,yp1,'b-', label="DP0")
+pDP00, = dp00.plot(t,dataDP00,'b-', label="DP0")
+pAP00, = ap00.plot(t,dataAP00,'g-', label="AP0")
+pDP01, = dp01.plot(t,dataDP01,'b-', label="DP1")
+pAP01, = ap01.plot(t,dataAP01,'g-', label="AP1")
 
 # set lagends
-ax01.legend([p011], [p011.get_label()])
-
+dp00.legend([pDP00], [pDP00.get_label()])
+ap00.legend([pAP00], [pAP00.get_label()])
+dp01.legend([pDP01], [pDP01.get_label()])
+ap01.legend([pAP01], [pAP01.get_label()])
 
 # Data Update
 xmin = 0.0
-xmax = 1000.0
+xmax = 10.0
 x = 0.0
 
 def updateData(self):
     global x
-    global yp1
+    global dataDP00
+    global dataAP00
+    global dataDP01
+    global dataAP01
     global t
 
-    ret = device.read(0x81, 3, 100)
-    time=(ret[2]<<8)|ret[1]
-    data=ret[0]
-    data=data*3.3
-    yp1=append(yp1,data)
-    stime=time/1000
-    t=append(t,time)
+
+    msg = 'test'
+    device.write(1, msg, 100)
+    ret = device.read(0x81, 7, 150)
+    time = ((ret[0] << 8) | ret[1])
+    dDP00 = (ret[2]&0x02)>>1
+    dDP01 = ret[2]&0x01
+    dAP00=(ret[3]<<8)|ret[4]
+    dAP01=(ret[5]<<8)|ret[6]
 
 
 
-    p011.set_data(t,yp1)
+    dAP00=dAP00*0.000806
+    dDP00=dDP00*3.3
+    dAP01 = dAP01 * 0.000806
+    dDP01 = dDP01 * 3.3
+
+    dataDP00=append(dataDP00,dDP00)
+    dataAP00=append(dataAP00,dAP00)
+    dataDP01 = append(dataDP01, dDP01)
+    dataAP01 = append(dataAP01, dAP01)
+
+    rtime=time/2
+    rtime=x     #fake the time as the interrupt time is not working
+    t=append(t,rtime)
+    x+=0.5
+    pDP00.set_data(t,dataDP00)
+    pAP00.set_data(t,dataAP00)
+    pDP01.set_data(t, dataDP01)
+    pAP01.set_data(t, dataAP01)
 
 
+    if rtime >= xmax-10.00:
+        pDP00.axes.set_xlim(rtime - xmax + 1.0, rtime + 1.0)
+        pAP00.axes.set_xlim(rtime - xmax + 1.0, rtime + 1.0)
+        pDP01.axes.set_xlim(rtime - xmax + 1.0, rtime + 1.0)
+        pAP01.axes.set_xlim(rtime - xmax + 1.0, rtime + 1.0)
 
-
-    if time >= xmax-100.00:
-        p011.axes.set_xlim(time-xmax+100.0,time+100.0)
-
-    return p011
+    return pDP00,pAP00,pDP01,pAP01
 
 # interval: draw new frame every 'interval' ms
 # frames: number of frames to draw
