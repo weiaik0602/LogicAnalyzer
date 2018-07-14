@@ -1,4 +1,3 @@
-import numpy
 from matplotlib.pylab import *
 from mpl_toolkits.axes_grid1 import host_subplot
 import matplotlib.animation as animation
@@ -128,9 +127,9 @@ def updateData(self):
     dataAP01 = append(dataAP01, dAP01)
 
     rtime=time/2
-    rtime=x     #fake the time as the interrupt time is not working
+    #rtime=x     #fake the time as the interrupt time is not working
     t=append(t,rtime)
-    x+=0.5
+    x+=1.0
     pDP00.set_data(t,dataDP00)
     pAP00.set_data(t,dataAP00)
     pDP01.set_data(t, dataDP01)
@@ -147,7 +146,7 @@ def updateData(self):
 
 # interval: draw new frame every 'interval' ms
 # frames: number of frames to draw
-simulation = animation.FuncAnimation(f0, updateData, blit=False, frames=None, interval=20, repeat=False)
+simulation = animation.FuncAnimation(f0, updateData, blit=False, frames=None, interval=1, repeat=False)
 
 
 plt.show()

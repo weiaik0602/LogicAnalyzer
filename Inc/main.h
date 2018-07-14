@@ -67,7 +67,8 @@
 /* #define USE_FULL_ASSERT    1U */
 
 /* USER CODE BEGIN Private defines */
-
+//#define LOBYTE(x)  ((uint8_t)(x & 0x00FF))
+//#define HIBYTE(x)  ((uint8_t)((x & 0xFF00) >>8))
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

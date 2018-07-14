@@ -1,27 +1,26 @@
-import usb.core
-import usb.util
+from plotly import tools
+import plotly.plotly as py
+import plotly.graph_objs as go
 
-# find our device
-dev = usb.core.find(find_all=True, idVendor=0x1A86, idProduct=0x7523)
-usb.core.show_devices(find_all=True,idVendor=0x1A86, idProduct=0x7523)
+trace1 = go.Scatter(
+    x=[0, 1, 2],
+    y=[10, 11, 12]
+)
+trace2 = go.Scatter(
+    x=[2, 3, 4],
+    y=[100, 110, 120],
+)
+trace3 = go.Scatter(
+    x=[3, 4, 5],
+    y=[1000, 1100, 1200],
+)
 
-# was it found?
-if dev is None:
-    print('Device not found')
-else:
-    print('found')
-    for dev in dev:
-        print("  idVendor: %d (0x%04x)" % (dev.idVendor, dev.idVendor))
-        print("  idProduct: %d (0x%04x)" % (dev.idProduct, dev.idProduct))
+fig = tools.make_subplots(rows=3, cols=1)
 
-# for bus in busses:
-#   devices = bus.devices
-#   for dev in devices:
-#     print(repr(dev))
-#     print("device:", dev.filename)
-#     print ("  idvendor: %d (0x%04x)" % (dev.idvendor, dev.idvendor))
-#     print ("  idproduct: %d (0x%04x)" % (dev.idproduct, dev.idproduct))
-#     print ("manufacturer:", dev.imanufacturer)
-#     print ("serial:", dev.iserialnumber)
-#     print ("product:", dev.iproduct)
-# print(usb.core.show_devices())
+fig.append_trace(trace3, 1, 1)
+fig.append_trace(trace2, 2, 1)
+fig.append_trace(trace1, 3, 1)
+
+
+fig['layout'].update(height=600, width=600, title='Stacked subplots')
+py.iplot(fig, filename='stacked-subplots')
