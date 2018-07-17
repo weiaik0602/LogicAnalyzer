@@ -66,6 +66,7 @@ TIM_HandleTypeDef htim3;
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
 uint32_t adc[10], buffer[10];  // define variables
+volatile uint8_t ADC_ReadyFlag;
 uint16_t myTick=0;
 /* USER CODE END PV */
 
@@ -128,7 +129,7 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   	int y;
-  	HAL_ADC_Start_DMA(&hadc1, buffer, 10);
+
   	HAL_TIM_Base_Start_IT(&htim3);
   while (1)
   {
@@ -149,20 +150,40 @@ int main(void)
 //	  printf("channel0: %d		channel1: %d\n",adc1,adc2);
 //
 //
+	  //HAL_ADC_Start_DMA(&hadc1, buffer, 10);
 	  uint16_t  time=myTick;
 	  //printf("%d\n", time);
-	  uint8_t data=((HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_9))<<1)|(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_8));
-	  uint8_t USB_Send_data[]={time>>8,time,data,adc[0]>>8,adc[0],adc[1]>>8,adc[1]};
+//	  uint8_t data=((HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_9))<<1)|(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_8));
+//	  uint8_t USB_Send_data[]={time>>8,time,data,adc[0]>>8,adc[0],adc[1]>>8,adc[1]};
 
 
 
 //	  printf("%d	%d	%d	%d	%d\n",USB_Send_data[0],USB_Send_data[1]\
 //			  ,USB_Send_data[2],USB_Send_data[3],USB_Send_data[4]);
-
-	  if(USB_CDC_MYSTATE==1)
-	  {
-			  CDC_Transmit_FS(&USB_Send_data, 7);
+	  if(ADC_ReadyFlag==READY){
+		  //printf("%d	%d	%d	%d	%d\n",adc[0],adc[1],adc[2],adc[3],adc[4]);
+		  uint8_t USB_Send_data[]={time,time,\
+				  	  	  	  	   ANALOG,	 \
+								   HIBYTE(adc[0]),LOBYTE(adc[0]),\
+								   HIBYTE(adc[1]),LOBYTE(adc[1]),\
+								   HIBYTE(adc[2]),LOBYTE(adc[2]),\
+								   HIBYTE(adc[3]),LOBYTE(adc[3]),\
+								   HIBYTE(adc[4]),LOBYTE(adc[4]),\
+								   HIBYTE(adc[5]),LOBYTE(adc[5]),\
+								   HIBYTE(adc[6]),LOBYTE(adc[6]),\
+								   HIBYTE(adc[7]),LOBYTE(adc[7]),\
+								   HIBYTE(adc[8]),LOBYTE(adc[8]),\
+                                   HIBYTE(adc[9]),LOBYTE(adc[9])};
+		  	  if(USB_CDC_MYSTATE==1)
+		  	  {
+		  			  CDC_Transmit_FS(&USB_Send_data, 23);
+		  	  }
+		  ADC_ReadyFlag=NotREADY;
 	  }
+//	  if(USB_CDC_MYSTATE==1)
+//	  {
+//			  CDC_Transmit_FS(&USB_Send_data, 7);
+//	  }
 
   /* USER CODE END WHILE */
 
@@ -242,7 +263,7 @@ static void MX_ADC1_Init(void)
     */
   hadc1.Instance = ADC1;
   hadc1.Init.ScanConvMode = ADC_SCAN_ENABLE;
-  hadc1.Init.ContinuousConvMode = ENABLE;
+  hadc1.Init.ContinuousConvMode = DISABLE;
   hadc1.Init.DiscontinuousConvMode = DISABLE;
   hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
   hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
@@ -256,7 +277,7 @@ static void MX_ADC1_Init(void)
     */
   sConfig.Channel = ADC_CHANNEL_0;
   sConfig.Rank = ADC_REGULAR_RANK_1;
-  sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;
+  sConfig.SamplingTime = ADC_SAMPLETIME_7CYCLES_5;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
@@ -311,6 +332,7 @@ static void MX_ADC1_Init(void)
     */
   sConfig.Channel = ADC_CHANNEL_6;
   sConfig.Rank = ADC_REGULAR_RANK_7;
+  sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
@@ -355,7 +377,7 @@ static void MX_TIM3_Init(void)
   htim3.Instance = TIM3;
   htim3.Init.Prescaler = 48000;
   htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim3.Init.Period = 20;
+  htim3.Init.Period = 500;
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim3) != HAL_OK)

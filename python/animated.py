@@ -96,6 +96,7 @@ xmin = 0.0
 xmax = 10.0
 x = 0.0
 
+
 def updateData(self):
     global x
     global dataDP00
@@ -107,40 +108,46 @@ def updateData(self):
 
     msg = 'test'
     device.write(1, msg, 100)
-    ret = device.read(0x81, 7, 150)
+    ret = device.read(0x81, 23, 550)
     time = ((ret[0] << 8) | ret[1])
-    dDP00 = (ret[2]&0x02)>>1
-    dDP01 = ret[2]&0x01
-    dAP00=(ret[3]<<8)|ret[4]
-    dAP01=(ret[5]<<8)|ret[6]
+    if ret[2]==1:
+        dAP00 = (ret[3] << 8) | ret[4]
+        dAP01 = (ret[5] << 8) | ret[6]
+        # dDP00 = dataDP00[-1]
+        # dDP01 = dataDP01[-1]
 
 
+    dDP00 = ret[3]
+    dDP01 = ret[3]
 
-    dAP00=dAP00*0.000806
-    dDP00=dDP00*3.3
+    dAP00 = dAP00 * 0.000806
     dAP01 = dAP01 * 0.000806
+
+    dDP00=dDP00*3.3
     dDP01 = dDP01 * 3.3
 
-    dataDP00=append(dataDP00,dDP00)
-    dataAP00=append(dataAP00,dAP00)
+
+
+    dataDP00 = append(dataDP00, dDP00)
     dataDP01 = append(dataDP01, dDP01)
+    dataAP00 = append(dataAP00, dAP00)
     dataAP01 = append(dataAP01, dAP01)
 
     rtime=time/2
     #rtime=x     #fake the time as the interrupt time is not working
-    t=append(t,rtime)
-    x+=1.0
+    t=append(t,x)
+    x+=0.5
     pDP00.set_data(t,dataDP00)
     pAP00.set_data(t,dataAP00)
     pDP01.set_data(t, dataDP01)
     pAP01.set_data(t, dataAP01)
 
 
-    if rtime >= xmax-10.00:
-        pDP00.axes.set_xlim(rtime - xmax + 1.0, rtime + 1.0)
-        pAP00.axes.set_xlim(rtime - xmax + 1.0, rtime + 1.0)
-        pDP01.axes.set_xlim(rtime - xmax + 1.0, rtime + 1.0)
-        pAP01.axes.set_xlim(rtime - xmax + 1.0, rtime + 1.0)
+    if t[-1] >= xmax-10.00:
+        pDP00.axes.set_xlim(t[-1] - xmax + 1.0, t[-1] + 1.0)
+        pAP00.axes.set_xlim(t[-1] - xmax + 1.0, t[-1] + 1.0)
+        pDP01.axes.set_xlim(t[-1] - xmax + 1.0, t[-1] + 1.0)
+        pAP01.axes.set_xlim(t[-1] - xmax + 1.0, t[-1] + 1.0)
 
     return pDP00,pAP00,pDP01,pAP01
 
