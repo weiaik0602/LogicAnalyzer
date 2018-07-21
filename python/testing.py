@@ -1,26 +1,33 @@
-from plotly import tools
-import plotly.plotly as py
-import plotly.graph_objs as go
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib import gridspec
 
-trace1 = go.Scatter(
-    x=[0, 1, 2],
-    y=[10, 11, 12]
-)
-trace2 = go.Scatter(
-    x=[2, 3, 4],
-    y=[100, 110, 120],
-)
-trace3 = go.Scatter(
-    x=[3, 4, 5],
-    y=[1000, 1100, 1200],
-)
+# Simple data to display in various forms
+x = np.linspace(0, 2 * np.pi, 400)
+y = np.sin(x ** 2)
 
-fig = tools.make_subplots(rows=3, cols=1)
+fig = plt.figure()
+# set height ratios for sublots
+gs = gridspec.GridSpec(2, 1, height_ratios=[1, 1])
 
-fig.append_trace(trace3, 1, 1)
-fig.append_trace(trace2, 2, 1)
-fig.append_trace(trace1, 3, 1)
+# the fisrt subplot
+ax0 = plt.subplot(gs[0])
+# log scale for axis Y of the first subplot
+ax0.set_yscale("log")
+line0, = ax0.plot(x, y, color='r')
 
+#the second subplot
+# shared axis X
+ax1 = plt.subplot(gs[1], sharex = ax0)
+line1, = ax1.plot(x, y, color='b', linestyle='--')
+plt.setp(ax0.get_xticklabels(), visible=False)
+# remove last tick label for the second subplot
+yticks = ax1.yaxis.get_major_ticks()
+yticks[-1].label1.set_visible(False)
 
-fig['layout'].update(height=600, width=600, title='Stacked subplots')
-py.iplot(fig, filename='stacked-subplots')
+# put lened on first subplot
+ax0.legend((line0, line1), ('red line', 'blue line'), loc='lower left')
+
+# remove vertical gap between subplots
+plt.subplots_adjust(hspace=.0)
+plt.show()

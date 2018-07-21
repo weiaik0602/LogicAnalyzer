@@ -42,6 +42,7 @@
 /* External variables --------------------------------------------------------*/
 extern PCD_HandleTypeDef hpcd_USB_FS;
 extern DMA_HandleTypeDef hdma_adc1;
+extern TIM_HandleTypeDef htim2;
 extern TIM_HandleTypeDef htim3;
 
 /******************************************************************************/
@@ -204,7 +205,7 @@ void DMA1_Channel1_IRQHandler(void)
   /* USER CODE END DMA1_Channel1_IRQn 0 */
   HAL_DMA_IRQHandler(&hdma_adc1);
   /* USER CODE BEGIN DMA1_Channel1_IRQn 1 */
-
+  ADC_ReadyFlag=READY;
   /* USER CODE END DMA1_Channel1_IRQn 1 */
 }
 
@@ -237,6 +238,20 @@ void USB_LP_CAN1_RX0_IRQHandler(void)
 }
 
 /**
+* @brief This function handles TIM2 global interrupt.
+*/
+void TIM2_IRQHandler(void)
+{
+  /* USER CODE BEGIN TIM2_IRQn 0 */
+
+  /* USER CODE END TIM2_IRQn 0 */
+  HAL_TIM_IRQHandler(&htim2);
+  /* USER CODE BEGIN TIM2_IRQn 1 */
+  myTick++;
+  /* USER CODE END TIM2_IRQn 1 */
+}
+
+/**
 * @brief This function handles TIM3 global interrupt.
 */
 void TIM3_IRQHandler(void)
@@ -246,11 +261,11 @@ void TIM3_IRQHandler(void)
   /* USER CODE END TIM3_IRQn 0 */
   HAL_TIM_IRQHandler(&htim3);
   /* USER CODE BEGIN TIM3_IRQn 1 */
-  if(ADC_ReadyFlag==NotREADY){
+  if(ADC_ReadyFlag==NOT_READY){
 	  //Not ready then read from adc through DMA(10 channel)
 	  //After that set the flag to ready
 	  HAL_ADC_Start_DMA(&hadc1, buffer, 10);
-	  ADC_ReadyFlag=READY;
+
   }
   /* USER CODE END TIM3_IRQn 1 */
 }

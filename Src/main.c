@@ -55,19 +55,25 @@
 #include <stdio.h>
 #include "usbd_cdc_if.h"
 #include "myHeader.h"
+#include "stm32_hal_legacy.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
 ADC_HandleTypeDef hadc1;
 DMA_HandleTypeDef hdma_adc1;
 
+TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
 uint32_t adc[10], buffer[10];  // define variables
 volatile uint8_t ADC_ReadyFlag;
-uint16_t myTick=0;
+volatile uint16_t myOldCounter=0;
+volatile uint16_t myCurrentCounter=0;
+volatile uint16_t myOldTick=0;
+volatile uint16_t myTick=0;
+volatile uint8_t USB_CDC_MYSTATE=NOT_READY;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -76,10 +82,13 @@ static void MX_GPIO_Init(void);
 static void MX_DMA_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_TIM3_Init(void);
+static void MX_TIM2_Init(void);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
 extern void initialise_monitor_handles(void);
+void Update_Old_Counter(void);
+uint16_t Counter_Difference_Cal(void);
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
@@ -119,6 +128,7 @@ int main(void)
   MX_ADC1_Init();
   MX_USB_DEVICE_Init();
   MX_TIM3_Init();
+  MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
 
 
@@ -131,37 +141,24 @@ int main(void)
   	int y;
 
   	HAL_TIM_Base_Start_IT(&htim3);
+  	HAL_TIM_Base_Start_IT(&htim2);
   while (1)
   {
-//	  HAL_GPIO_TogglePin (GPIOC, GPIO_PIN_13);
-//	  HAL_Delay (1000);
-//	  int adc1,adc2;
-//
-//
-//	  HAL_ADC_Start(&hadc1);
-//	  HAL_ADC_PollForConversion(&hadc1, 100);
-//	  adc1 = HAL_ADC_GetValue(&hadc1);
-//
-//	  HAL_ADC_PollForConversion(&hadc1, 100);
-//	  adc2 = HAL_ADC_GetValue(&hadc1);
-//
-//	  HAL_ADC_Stop (&hadc1);
-//
-//	  printf("channel0: %d		channel1: %d\n",adc1,adc2);
-//
-//
-	  //HAL_ADC_Start_DMA(&hadc1, buffer, 10);
+
+	  uint16_t msDiff=Counter_Difference_Cal();
+	  log("%d	%d\n",myTick,msDiff);
+
 	  uint16_t  time=myTick;
-	  //printf("%d\n", time);
+	  //log("%d\n", time);
 //	  uint8_t data=((HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_9))<<1)|(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_8));
 //	  uint8_t USB_Send_data[]={time>>8,time,data,adc[0]>>8,adc[0],adc[1]>>8,adc[1]};
 
 
 
-//	  printf("%d	%d	%d	%d	%d\n",USB_Send_data[0],USB_Send_data[1]\
+//	  log("%d	%d	%d	%d	%d\n",USB_Send_data[0],USB_Send_data[1]\
 //			  ,USB_Send_data[2],USB_Send_data[3],USB_Send_data[4]);
 	  if(ADC_ReadyFlag==READY){
-		  //printf("%d	%d	%d	%d	%d\n",adc[0],adc[1],adc[2],adc[3],adc[4]);
+		  //log("%d	%d	%d	%d	%d\n",adc[0],adc[1],adc[2],adc[3],adc[4]);
 		  uint8_t USB_Send_data[]={time,time,\
 				  	  	  	  	   ANALOG,	 \
 								   HIBYTE(adc[0]),LOBYTE(adc[0]),\
@@ -178,7 +175,7 @@ int main(void)
 		  	  {
 		  			  CDC_Transmit_FS(&USB_Send_data, 23);
 		  	  }
-		  ADC_ReadyFlag=NotREADY;
+		  ADC_ReadyFlag=NOT_READY;
 	  }
 //	  if(USB_CDC_MYSTATE==1)
 //	  {
@@ -367,6 +364,40 @@ static void MX_ADC1_Init(void)
 
 }
 
+/* TIM2 init function */
+static void MX_TIM2_Init(void)
+{
+
+  TIM_SlaveConfigTypeDef sSlaveConfig;
+  TIM_MasterConfigTypeDef sMasterConfig;
+
+  htim2.Instance = TIM2;
+  htim2.Init.Prescaler = 48000;
+  htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim2.Init.Period = 1000;
+  htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+  sSlaveConfig.SlaveMode = TIM_SLAVEMODE_DISABLE;
+  sSlaveConfig.InputTrigger = TIM_TS_ITR0;
+  if (HAL_TIM_SlaveConfigSynchronization(&htim2, &sSlaveConfig) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+}
+
 /* TIM3 init function */
 static void MX_TIM3_Init(void)
 {
@@ -448,7 +479,34 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 	{
 	   adc[i] = buffer[i];  // store the values in adc[]
 	}
-	//printf("channel0: %d		channel1: %d\n",adc[0],adc[1]);
+	//log("channel0: %d		channel1: %d\n",adc[0],adc[1]);
+}
+
+void Update_Old_Counter()
+{
+	myOldCounter=myCurrentCounter;
+	myOldTick=myTick;
+}
+uint16_t Counter_Difference_Cal()
+{
+	//get current counter
+	myCurrentCounter=__HAL_TIM_GetCounter(&htim2);
+	uint16_t counter=myCurrentCounter;
+	uint16_t answer;
+	//get the difference in sec
+	uint16_t secDiff=myTick-myOldTick;
+	if(secDiff==0){
+		//if it is in same sec, use counter- myoldcounter
+		answer= counter-myOldCounter;
+	}
+	else{
+		/*else get the remaining tick in current sec
+			+ (the difference in sec -1)*1000ms+the counter in this sec*/
+		answer= (1000-myOldCounter)+((secDiff-1)*1000)+counter;
+	}
+	Update_Old_Counter();
+	return answer;
+
 }
 /* USER CODE END 4 */
 

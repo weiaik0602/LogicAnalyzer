@@ -12,12 +12,25 @@
 #include "usbd_cdc_if.h"
 
 //global variable
-extern uint16_t myTick;
+
 extern uint32_t adc[10], buffer[10];  // define variables
 extern ADC_HandleTypeDef hadc1;
+extern volatile uint16_t myOldCounter;
+extern volatile uint16_t myCurrentCounter;
+extern volatile uint16_t myOldTick;
+extern volatile uint16_t myTick;
 extern volatile uint8_t ADC_ReadyFlag;
+extern volatile uint8_t USB_CDC_MYSTATE;
 
-
-//private defination
+//private definition
 #define READY	1
-#define NotREADY	0
+#define NOT_READY	0
+
+#define SEMIHOSTING
+
+
+#ifndef SEMIHOSTING
+#define log(...)
+#else
+#define log printf
+#endif
