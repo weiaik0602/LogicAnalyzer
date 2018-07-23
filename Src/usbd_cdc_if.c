@@ -293,8 +293,12 @@ static int8_t CDC_Receive_FS(uint8_t* Buf, uint32_t *Len)
   /* USER CODE BEGIN 6 */
   USBD_CDC_SetRxBuffer(&hUsbDeviceFS, &Buf[0]);
   USBD_CDC_ReceivePacket(&hUsbDeviceFS);
-  USB_CDC_MYSTATE=READY;
-
+  if(Buf[0]==CONFIGURATION){
+	  for(int i=0;i<5;i++){
+		  configBuffer[i]=Buf[i];
+	  }
+	  USB_CDC_MYSTATE=CONFIGURATION;
+  }
   return (USBD_OK);
   /* USER CODE END 6 */
 }

@@ -28,7 +28,7 @@ def main():
         device.write(1, msg, 150)
         attempt=0
         while True:
-            ret = device.read(0x81, 23, 510)
+            ret = device.read(0x81, 30, 510)
             time=((ret[0]<<8)|ret[1])/2
             data = ret[2]
             print(ret)

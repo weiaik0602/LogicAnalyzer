@@ -74,6 +74,11 @@ volatile uint16_t myCurrentCounter=0;
 volatile uint16_t myOldTick=0;
 volatile uint16_t myTick=0;
 volatile uint8_t USB_CDC_MYSTATE=NOT_READY;
+volatile uint8_t configBuffer[5];
+uint8_t DP_GPIOA;
+uint8_t DP_GPIOB;
+volatile uint8_t sizeofDP;
+volatile uint8_t DPArray[];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -86,9 +91,14 @@ static void MX_TIM2_Init(void);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
+static uint8_t ArrangeForDPGPIOB(void);
+static void MY_GPIO_Init(uint8_t);
 extern void initialise_monitor_handles(void);
 void Update_Old_Counter(void);
 uint16_t Counter_Difference_Cal(void);
+uint8_t countSetBits(uint16_t PortsAvailable);
+void AssignReadDataToArray(void);
+
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
@@ -142,11 +152,12 @@ int main(void)
 
   	HAL_TIM_Base_Start_IT(&htim3);
   	HAL_TIM_Base_Start_IT(&htim2);
+  	log("%s","Testing!!!\n");
   while (1)
   {
-
 	  uint16_t msDiff=Counter_Difference_Cal();
-	  log("%d	%d\n",myTick,msDiff);
+
+	  //log("%d	%d\n",myTick,msDiff);
 
 	  uint16_t  time=myTick;
 	  //log("%d\n", time);
@@ -157,25 +168,44 @@ int main(void)
 
 //	  log("%d	%d	%d	%d	%d\n",USB_Send_data[0],USB_Send_data[1]\
 //			  ,USB_Send_data[2],USB_Send_data[3],USB_Send_data[4]);
+
+	  if(USB_CDC_MYSTATE==CONFIGURATION){
+		  //log("%d,%d,%d,%d,%d\n",configBuffer[0],configBuffer[1],configBuffer[2],configBuffer[3],configBuffer[4]);
+		  uint16_t configDP=(configBuffer[1]<<8)|configBuffer[2];
+		  sizeofDP=countSetBits(configDP);
+
+
+
+		  AssignPortToArray(configDP);
+		  AssignReadDataToArray();
+//			  DPArray[i]=PortNum;
+		  for(int i=0;i<sizeofDP;i++){
+			  log("%d\n",DPArray[i]);
+		  }
+		  //uint8_t result=ArrangeForDPGPIOB();
+
+		  //log("%d\n",result);
+	  }
 	  if(ADC_ReadyFlag==READY){
 		  //log("%d	%d	%d	%d	%d\n",adc[0],adc[1],adc[2],adc[3],adc[4]);
-		  uint8_t USB_Send_data[]={time,time,\
-				  	  	  	  	   ANALOG,	 \
-								   HIBYTE(adc[0]),LOBYTE(adc[0]),\
-								   HIBYTE(adc[1]),LOBYTE(adc[1]),\
-								   HIBYTE(adc[2]),LOBYTE(adc[2]),\
-								   HIBYTE(adc[3]),LOBYTE(adc[3]),\
-								   HIBYTE(adc[4]),LOBYTE(adc[4]),\
-								   HIBYTE(adc[5]),LOBYTE(adc[5]),\
-								   HIBYTE(adc[6]),LOBYTE(adc[6]),\
-								   HIBYTE(adc[7]),LOBYTE(adc[7]),\
-								   HIBYTE(adc[8]),LOBYTE(adc[8]),\
-                                   HIBYTE(adc[9]),LOBYTE(adc[9])};
+//		  uint8_t USB_Send_data[]={time,time,\
+//				  	  	  	  	   ANALOG,	 \
+//								   HIBYTE(adc[0]),LOBYTE(adc[0]),\
+//								   HIBYTE(adc[1]),LOBYTE(adc[1]),\
+//								   HIBYTE(adc[2]),LOBYTE(adc[2]),\
+//								   HIBYTE(adc[3]),LOBYTE(adc[3]),\
+//								   HIBYTE(adc[4]),LOBYTE(adc[4]),\
+//								   HIBYTE(adc[5]),LOBYTE(adc[5]),\
+//								   HIBYTE(adc[6]),LOBYTE(adc[6]),\
+//								   HIBYTE(adc[7]),LOBYTE(adc[7]),\
+//								   HIBYTE(adc[8]),LOBYTE(adc[8]),\
+//                                   HIBYTE(adc[9]),LOBYTE(adc[9])};
+		  uint8_t USB_Send_data[]={1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23};
 		  	  if(USB_CDC_MYSTATE==1)
 		  	  {
 		  			  CDC_Transmit_FS(&USB_Send_data, 23);
 		  	  }
-		  ADC_ReadyFlag=NOT_READY;
+		  //ADC_ReadyFlag=NOT_READY;
 	  }
 //	  if(USB_CDC_MYSTATE==1)
 //	  {
@@ -464,8 +494,16 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
-  /*Configure GPIO pins : PA8 PA9 */
-  GPIO_InitStruct.Pin = GPIO_PIN_8|GPIO_PIN_9;
+  /*Configure GPIO pins : PB2 PB3 PB4 PB5 
+                           PB6 PB7 */
+  GPIO_InitStruct.Pin = GPIO_PIN_2|GPIO_PIN_3|GPIO_PIN_4|GPIO_PIN_5 
+                          |GPIO_PIN_6|GPIO_PIN_7;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : PA8 PA9 PA10 PA15 */
+  GPIO_InitStruct.Pin = GPIO_PIN_8|GPIO_PIN_9|GPIO_PIN_10|GPIO_PIN_15;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
@@ -473,6 +511,55 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+static uint8_t ArrangeForDPGPIOB(void){
+	uint8_t bit[8],result;
+	bit[0]=0;
+	bit[1]=0;
+	bit[2]=(configBuffer[2]>>4)&0x01;
+	bit[3]=(configBuffer[2]>>5)&0x01;
+	bit[4]=(configBuffer[2]>>6)&0x01;
+	bit[5]=(configBuffer[2]>>7)&0x01;
+	bit[6]=(configBuffer[1]>>0)&0x01;
+	bit[7]=(configBuffer[1]>>1)&0x01;
+	result=(bit[7]<<7) | (bit[6]<<6) |(bit[5]<<5) | (bit[4]<<4) | (bit[3]<<3) | (bit[2]<<2) | (bit[1]<<1) | (bit[0]<<0);
+	return result;
+}
+uint8_t countSetBits(uint16_t PortsAvailable)
+{
+  unsigned int count = 0;
+  while (PortsAvailable)
+  {
+    count += PortsAvailable & 1;
+    PortsAvailable >>= 1;
+  }
+  return count;
+}
+static void MY_GPIO_Init(uint8_t enable)
+{
+
+  GPIO_InitTypeDef GPIO_InitStruct;
+
+  /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOD_CLK_ENABLE();
+  __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
+
+  /*Configure GPIO pins : PB2 PB3 PB4 PB5
+                           PB6 PB7 */
+  GPIO_InitStruct.Pin = (GPIO_PIN_2|GPIO_PIN_3|GPIO_PIN_4|GPIO_PIN_5
+                          |GPIO_PIN_6|GPIO_PIN_7)&enable;
+  log("%d\n",GPIO_InitStruct.Pin);
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : PA8 PA9 PA10 PA15 */
+  GPIO_InitStruct.Pin = GPIO_PIN_8|GPIO_PIN_9|GPIO_PIN_10|GPIO_PIN_15;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+}
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 {
 	for (int i =0; i<10; i++)
@@ -481,7 +568,59 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 	}
 	//log("channel0: %d		channel1: %d\n",adc[0],adc[1]);
 }
+void AssignPortToArray(uint16_t configDP){
+	uint8_t PortNum=0;
+	int i=0;
+	while(configDP){
+		if(configDP&1){
+			DPArray[i]=PortNum;
+			i++;
+		}
+		configDP >>= 1;
+		PortNum+=1;
+	 }
+}
+void AssignReadDataToArray(){
+	uint16_t pin;
+	GPIO_TypeDef* GPIO;
+	for(int i=0;i<sizeofDP;i++){
+		switch(DPArray[i]){
+		case 0:
+					DPArray[i]=HAL_GPIO_ReadPin(GPIOA,GPIO_PIN_8);
+					break;
+		case 1:
+					DPArray[i]=HAL_GPIO_ReadPin(GPIOA,GPIO_PIN_9);
+					break;
+		case 2:
+					DPArray[i]=HAL_GPIO_ReadPin(GPIOA,GPIO_PIN_10);
+					break;
+		case 3:
+					DPArray[i]=HAL_GPIO_ReadPin(GPIOA,GPIO_PIN_15);
+					break;
+		case 4:
+					DPArray[i]=HAL_GPIO_ReadPin(GPIOB,GPIO_PIN_2);
+					break;
+		case 5:
+					DPArray[i]=HAL_GPIO_ReadPin(GPIOB,GPIO_PIN_3);
+					break;
+		case 6:
+					DPArray[i]=HAL_GPIO_ReadPin(GPIOB,GPIO_PIN_4);
+					break;
+		case 7:
+					DPArray[i]=HAL_GPIO_ReadPin(GPIOB,GPIO_PIN_5);
+					break;
+		case 8:
+					DPArray[i]=HAL_GPIO_ReadPin(GPIOB,GPIO_PIN_6);
+					break;
+		case 9:
+					DPArray[i]=HAL_GPIO_ReadPin(GPIOB,GPIO_PIN_7);
+					break;
+		}
 
+
+	}
+
+}
 void Update_Old_Counter()
 {
 	myOldCounter=myCurrentCounter;

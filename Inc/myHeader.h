@@ -21,11 +21,12 @@ extern volatile uint16_t myOldTick;
 extern volatile uint16_t myTick;
 extern volatile uint8_t ADC_ReadyFlag;
 extern volatile uint8_t USB_CDC_MYSTATE;
+extern volatile uint8_t configBuffer[5];
 
 //private definition
 #define READY	1
 #define NOT_READY	0
-
+#define CONFIGURATION 0x22
 #define SEMIHOSTING
 
 
