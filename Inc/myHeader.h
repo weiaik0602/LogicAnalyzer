@@ -17,8 +17,8 @@ extern uint32_t adc[10], buffer[10];  // define variables
 extern ADC_HandleTypeDef hadc1;
 extern volatile uint16_t myOldCounter;
 extern volatile uint16_t myCurrentCounter;
-extern volatile uint16_t myOldTick;
-extern volatile uint16_t myTick;
+extern volatile uint32_t myOldTick;
+extern volatile uint32_t myCurrentTick;
 extern volatile uint8_t ADC_ReadyFlag;
 extern volatile uint8_t USB_CDC_MYSTATE;
 extern volatile uint8_t configBuffer[5];
@@ -27,6 +27,8 @@ extern volatile uint8_t configBuffer[5];
 #define READY	1
 #define NOT_READY	0
 #define CONFIGURATION 0x22
+#define SEND_DATA 0x33
+#define IDLE 0xFF
 #define SEMIHOSTING
 
 

@@ -2,19 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="2effa601-20e6-4de5-95ad-acd55e648b55" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/../.cproject" beforeDir="false" afterPath="$PROJECT_DIR$/../.cproject" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Inc/main.h" beforeDir="false" afterPath="$PROJECT_DIR$/../Inc/main.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Inc/myHeader.h" beforeDir="false" afterPath="$PROJECT_DIR$/../Inc/myHeader.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Inc/stm32f1xx_it.h" beforeDir="false" afterPath="$PROJECT_DIR$/../Inc/stm32f1xx_it.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../LogicAnalyzer.ioc" beforeDir="false" afterPath="$PROJECT_DIR$/../LogicAnalyzer.ioc" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../Src/main.c" beforeDir="false" afterPath="$PROJECT_DIR$/../Src/main.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Src/stm32f1xx_it.c" beforeDir="false" afterPath="$PROJECT_DIR$/../Src/stm32f1xx_it.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Src/usb_device.c" beforeDir="false" afterPath="$PROJECT_DIR$/../Src/usb_device.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Src/usbd_cdc_if.c" beforeDir="false" afterPath="$PROJECT_DIR$/../Src/usbd_cdc_if.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Src/usbd_conf.c" beforeDir="false" afterPath="$PROJECT_DIR$/../Src/usbd_conf.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/aminated2.py" beforeDir="false" afterPath="$PROJECT_DIR$/aminated2.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/animated.py" beforeDir="false" afterPath="$PROJECT_DIR$/animated.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />

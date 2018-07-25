@@ -293,7 +293,7 @@ void TIM2_IRQHandler(void)
   /* USER CODE END TIM2_IRQn 0 */
   HAL_TIM_IRQHandler(&htim2);
   /* USER CODE BEGIN TIM2_IRQn 1 */
-  myTick++;
+  myCurrentTick++;
   /* USER CODE END TIM2_IRQn 1 */
 }
 
@@ -313,6 +313,8 @@ void TIM3_IRQHandler(void)
 	  HAL_ADC_Start_DMA(&hadc1, buffer, 10);
 
   }
+  Counter_Difference_Cal();
+  USB_CDC_MYSTATE=IDLE;
   /* USER CODE END TIM3_IRQn 1 */
 }
 

@@ -70,9 +70,11 @@ uint32_t adc[10], buffer[10];  // define variables
 volatile uint8_t ADC_ReadyFlag;
 volatile uint16_t myOldCounter=0;
 volatile uint16_t myCurrentCounter=0;
-volatile uint16_t myOldTick=0;
-volatile uint16_t myTick=0;
-volatile uint8_t USB_CDC_MYSTATE=NOT_READY;
+volatile uint32_t myOldTick=0;
+volatile uint32_t myCurrentTick=0;
+volatile uint16_t counterDiff=0;
+volatile uint32_t tickDiff=0;
+volatile uint8_t USB_CDC_MYSTATE=IDLE;
 volatile uint8_t configBuffer[5];
 uint8_t DP_GPIOA;
 uint8_t DP_GPIOB;
@@ -91,13 +93,12 @@ static void MX_TIM2_Init(void);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
-static uint8_t ArrangeForDPGPIOB(void);
-static void MY_GPIO_Init(uint8_t);
 extern void initialise_monitor_handles(void);
 void Update_Old_Counter(void);
-uint16_t Counter_Difference_Cal(void);
+void Counter_Difference_Cal(void);
 uint8_t countSetBits(uint16_t PortsAvailable);
 void AssignReadDataToArray(void);
+void AssignPortToArray(uint16_t configDP);
 
 /* USER CODE END PFP */
 
@@ -148,46 +149,35 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  	int y;
-
-  	HAL_TIM_Base_Start_IT(&htim3);
   	HAL_TIM_Base_Start_IT(&htim2);
+  	HAL_TIM_Base_Start_IT(&htim3);
   	log("%s","Testing!!!\n");
   while (1)
   {
-	  uint16_t msDiff=Counter_Difference_Cal();
-
-	  //log("%d	%d\n",myTick,msDiff);
-
-	  uint16_t  time=myTick;
-	  //log("%d\n", time);
-//	  uint8_t data=((HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_9))<<1)|(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_8));
-//	  uint8_t USB_Send_data[]={time>>8,time,data,adc[0]>>8,adc[0],adc[1]>>8,adc[1]};
-
-
 
 //	  log("%d	%d	%d	%d	%d\n",USB_Send_data[0],USB_Send_data[1]\
 //			  ,USB_Send_data[2],USB_Send_data[3],USB_Send_data[4]);
-
-	  if(USB_CDC_MYSTATE==CONFIGURATION){
-		  uint16_t configDP=(configBuffer[1]<<8)|configBuffer[2];
+	  uint16_t configDP;
+	  switch(USB_CDC_MYSTATE){
+	  case CONFIGURATION:
+		  configDP=(configBuffer[1]<<8)|configBuffer[2];
 		  sizeofDP=countSetBits(configDP);
 
-
-
 		  AssignPortToArray(configDP);
-//		  for(int i=0;i<sizeofDP;i++){
-//			  log("The %d port is %d\n",i,DPPortArray[i]);
-//		  }
-
 		  AssignReadDataToArray();
 		  for(int i=0;i<sizeofDP;i++){
-			  log("The %d value is %d\n",i,DPDataArray[i]);
+		  	log("The port %d value is %d\n",DPPortArray[i],DPDataArray[i]);
 		  }
-		  //uint8_t result=ArrangeForDPGPIOB();
-
-		  //log("%d\n",result);
+		  USB_CDC_MYSTATE=IDLE;
+	   break;
+	  case SEND_DATA:
+		  break;
+	  case IDLE:
+		  log("%d	%d\n",counterDiff,tickDiff);
+		  USB_CDC_MYSTATE=SEND_DATA;
+		  break;
 	  }
+
 	  if(ADC_ReadyFlag==READY){
 		  //log("%d	%d	%d	%d	%d\n",adc[0],adc[1],adc[2],adc[3],adc[4]);
 //		  uint8_t USB_Send_data[]={time,time,\
@@ -404,9 +394,9 @@ static void MX_TIM2_Init(void)
   TIM_MasterConfigTypeDef sMasterConfig;
 
   htim2.Instance = TIM2;
-  htim2.Init.Prescaler = 48000;
+  htim2.Init.Prescaler = 12;
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim2.Init.Period = 1000;
+  htim2.Init.Period = 65535;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
@@ -492,9 +482,20 @@ static void MX_GPIO_Init(void)
   GPIO_InitTypeDef GPIO_InitStruct;
 
   /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin : PC13 */
+  GPIO_InitStruct.Pin = GPIO_PIN_13;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /*Configure GPIO pins : DP4_Pin DP5_Pin DP6_Pin DP7_Pin 
                            DP8_Pin DP9_Pin */
@@ -529,19 +530,6 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-static uint8_t ArrangeForDPGPIOB(void){
-	uint8_t bit[8],result;
-	bit[0]=0;
-	bit[1]=0;
-	bit[2]=(configBuffer[2]>>4)&0x01;
-	bit[3]=(configBuffer[2]>>5)&0x01;
-	bit[4]=(configBuffer[2]>>6)&0x01;
-	bit[5]=(configBuffer[2]>>7)&0x01;
-	bit[6]=(configBuffer[1]>>0)&0x01;
-	bit[7]=(configBuffer[1]>>1)&0x01;
-	result=(bit[7]<<7) | (bit[6]<<6) |(bit[5]<<5) | (bit[4]<<4) | (bit[3]<<3) | (bit[2]<<2) | (bit[1]<<1) | (bit[0]<<0);
-	return result;
-}
 uint8_t countSetBits(uint16_t PortsAvailable)
 {
   unsigned int count = 0;
@@ -551,32 +539,6 @@ uint8_t countSetBits(uint16_t PortsAvailable)
     PortsAvailable >>= 1;
   }
   return count;
-}
-static void MY_GPIO_Init(uint8_t enable)
-{
-
-  GPIO_InitTypeDef GPIO_InitStruct;
-
-  /* GPIO Ports Clock Enable */
-  __HAL_RCC_GPIOD_CLK_ENABLE();
-  __HAL_RCC_GPIOA_CLK_ENABLE();
-  __HAL_RCC_GPIOB_CLK_ENABLE();
-
-  /*Configure GPIO pins : PB2 PB3 PB4 PB5
-                           PB6 PB7 */
-  GPIO_InitStruct.Pin = (GPIO_PIN_2|GPIO_PIN_3|GPIO_PIN_4|GPIO_PIN_5
-                          |GPIO_PIN_6|GPIO_PIN_7)&enable;
-  log("%d\n",GPIO_InitStruct.Pin);
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : PA8 PA9 PA10 PA15 */
-  GPIO_InitStruct.Pin = GPIO_PIN_8|GPIO_PIN_9|GPIO_PIN_10|GPIO_PIN_15;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
 }
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 {
@@ -634,34 +596,18 @@ void AssignReadDataToArray(){
 		}
 	}
 }
-void UpdateDPData(){
-
-}
 void Update_Old_Counter()
 {
 	myOldCounter=myCurrentCounter;
-	myOldTick=myTick;
+	myOldTick=myCurrentTick;
 }
-uint16_t Counter_Difference_Cal()
+void Counter_Difference_Cal()
 {
 	//get current counter
 	myCurrentCounter=__HAL_TIM_GetCounter(&htim2);
-	uint16_t counter=myCurrentCounter;
-	uint16_t answer;
-	//get the difference in sec
-	uint16_t secDiff=myTick-myOldTick;
-	if(secDiff==0){
-		//if it is in same sec, use counter- myoldcounter
-		answer= counter-myOldCounter;
-	}
-	else{
-		/*else get the remaining tick in current sec
-			+ (the difference in sec -1)*1000ms+the counter in this sec*/
-		answer= (1000-myOldCounter)+((secDiff-1)*1000)+counter;
-	}
+	counterDiff=myCurrentCounter-myOldCounter;
+	tickDiff=myCurrentTick-myOldTick;
 	Update_Old_Counter();
-	return answer;
-
 }
 /* USER CODE END 4 */
 
