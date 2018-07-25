@@ -9,7 +9,7 @@
 #include "stm32f1xx_hal.h"
 #include "usb_device.h"
 #include <stdio.h>
-#include "usbd_cdc_if.h"
+//#include "usbd_cdc_if.h"
 
 //global variable
 

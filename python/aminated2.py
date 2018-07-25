@@ -33,8 +33,8 @@ dp00 = plt.subplot(10, 2, 1)
 dp01 = plt.subplot(10, 2, 3,sharex=dp00)
 plt.setp(dp00.get_xticklabels(), visible=False)
 
-ap00 = plt.subplot(10, 2, 2)
-ap01 = plt.subplot(10, 2, 4,sharex=ap00)
+ap00 = plt.subplot(5, 2, 2)
+ap01 = plt.subplot(5, 2, 4,sharex=ap00)
 
 #set to full screen
 manager = plt.get_current_fig_manager()

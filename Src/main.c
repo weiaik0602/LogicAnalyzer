@@ -53,7 +53,6 @@
 
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
-#include "usbd_cdc_if.h"
 #include "myHeader.h"
 #include "stm32_hal_legacy.h"
 /* USER CODE END Includes */
@@ -78,7 +77,8 @@ volatile uint8_t configBuffer[5];
 uint8_t DP_GPIOA;
 uint8_t DP_GPIOB;
 volatile uint8_t sizeofDP;
-volatile uint8_t DPArray[];
+volatile uint8_t DPPortArray[];
+volatile uint8_t DPDataArray[];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -136,9 +136,9 @@ int main(void)
   MX_GPIO_Init();
   MX_DMA_Init();
   MX_ADC1_Init();
-  MX_USB_DEVICE_Init();
   MX_TIM3_Init();
   MX_TIM2_Init();
+  MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 2 */
 
 
@@ -170,17 +170,19 @@ int main(void)
 //			  ,USB_Send_data[2],USB_Send_data[3],USB_Send_data[4]);
 
 	  if(USB_CDC_MYSTATE==CONFIGURATION){
-		  //log("%d,%d,%d,%d,%d\n",configBuffer[0],configBuffer[1],configBuffer[2],configBuffer[3],configBuffer[4]);
 		  uint16_t configDP=(configBuffer[1]<<8)|configBuffer[2];
 		  sizeofDP=countSetBits(configDP);
 
 
 
 		  AssignPortToArray(configDP);
+//		  for(int i=0;i<sizeofDP;i++){
+//			  log("The %d port is %d\n",i,DPPortArray[i]);
+//		  }
+
 		  AssignReadDataToArray();
-//			  DPArray[i]=PortNum;
 		  for(int i=0;i<sizeofDP;i++){
-			  log("%d\n",DPArray[i]);
+			  log("The %d value is %d\n",i,DPDataArray[i]);
 		  }
 		  //uint8_t result=ArrangeForDPGPIOB();
 
@@ -494,19 +496,35 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
-  /*Configure GPIO pins : PB2 PB3 PB4 PB5 
-                           PB6 PB7 */
-  GPIO_InitStruct.Pin = GPIO_PIN_2|GPIO_PIN_3|GPIO_PIN_4|GPIO_PIN_5 
-                          |GPIO_PIN_6|GPIO_PIN_7;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  /*Configure GPIO pins : DP4_Pin DP5_Pin DP6_Pin DP7_Pin 
+                           DP8_Pin DP9_Pin */
+  GPIO_InitStruct.Pin = DP4_Pin|DP5_Pin|DP6_Pin|DP7_Pin 
+                          |DP8_Pin|DP9_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;
   GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PA8 PA9 PA10 PA15 */
-  GPIO_InitStruct.Pin = GPIO_PIN_8|GPIO_PIN_9|GPIO_PIN_10|GPIO_PIN_15;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  /*Configure GPIO pins : DP0_Pin DP1_Pin DP2_Pin DP3_Pin */
+  GPIO_InitStruct.Pin = DP0_Pin|DP1_Pin|DP2_Pin|DP3_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;
   GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI2_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI2_IRQn);
+
+  HAL_NVIC_SetPriority(EXTI3_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI3_IRQn);
+
+  HAL_NVIC_SetPriority(EXTI4_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI4_IRQn);
+
+  HAL_NVIC_SetPriority(EXTI9_5_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
+
+  HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 
 }
 
@@ -573,7 +591,7 @@ void AssignPortToArray(uint16_t configDP){
 	int i=0;
 	while(configDP){
 		if(configDP&1){
-			DPArray[i]=PortNum;
+			DPPortArray[i]=PortNum;
 			i++;
 		}
 		configDP >>= 1;
@@ -581,44 +599,42 @@ void AssignPortToArray(uint16_t configDP){
 	 }
 }
 void AssignReadDataToArray(){
-	uint16_t pin;
-	GPIO_TypeDef* GPIO;
 	for(int i=0;i<sizeofDP;i++){
-		switch(DPArray[i]){
+		switch(DPPortArray[i]){
 		case 0:
-					DPArray[i]=HAL_GPIO_ReadPin(GPIOA,GPIO_PIN_8);
+					DPDataArray[i]=HAL_GPIO_ReadPin(DP0_GPIO_Port,DP0_Pin);
 					break;
 		case 1:
-					DPArray[i]=HAL_GPIO_ReadPin(GPIOA,GPIO_PIN_9);
+					DPDataArray[i]=HAL_GPIO_ReadPin(DP1_GPIO_Port,DP1_Pin);
 					break;
 		case 2:
-					DPArray[i]=HAL_GPIO_ReadPin(GPIOA,GPIO_PIN_10);
+					DPDataArray[i]=HAL_GPIO_ReadPin(DP2_GPIO_Port,DP2_Pin);
 					break;
 		case 3:
-					DPArray[i]=HAL_GPIO_ReadPin(GPIOA,GPIO_PIN_15);
+					DPDataArray[i]=HAL_GPIO_ReadPin(DP3_GPIO_Port,DP3_Pin);
 					break;
 		case 4:
-					DPArray[i]=HAL_GPIO_ReadPin(GPIOB,GPIO_PIN_2);
+					DPDataArray[i]=HAL_GPIO_ReadPin(DP4_GPIO_Port,DP4_Pin);
 					break;
 		case 5:
-					DPArray[i]=HAL_GPIO_ReadPin(GPIOB,GPIO_PIN_3);
+					DPDataArray[i]=HAL_GPIO_ReadPin(DP5_GPIO_Port,DP5_Pin);
 					break;
 		case 6:
-					DPArray[i]=HAL_GPIO_ReadPin(GPIOB,GPIO_PIN_4);
+					DPDataArray[i]=HAL_GPIO_ReadPin(DP6_GPIO_Port,DP6_Pin);
 					break;
 		case 7:
-					DPArray[i]=HAL_GPIO_ReadPin(GPIOB,GPIO_PIN_5);
+					DPDataArray[i]=HAL_GPIO_ReadPin(DP7_GPIO_Port,DP7_Pin);
 					break;
 		case 8:
-					DPArray[i]=HAL_GPIO_ReadPin(GPIOB,GPIO_PIN_6);
+					DPDataArray[i]=HAL_GPIO_ReadPin(DP8_GPIO_Port,DP8_Pin);
 					break;
 		case 9:
-					DPArray[i]=HAL_GPIO_ReadPin(GPIOB,GPIO_PIN_7);
+					DPDataArray[i]=HAL_GPIO_ReadPin(DP9_GPIO_Port,DP9_Pin);
 					break;
 		}
-
-
 	}
+}
+void UpdateDPData(){
 
 }
 void Update_Old_Counter()
