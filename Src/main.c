@@ -55,6 +55,7 @@
 #include <stdio.h>
 #include "myHeader.h"
 #include "stm32_hal_legacy.h"
+#include "MyFunction.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -154,7 +155,7 @@ int main(void)
   	log("%s","Testing!!!\n");
   while (1)
   {
-
+  	log("%d\n",add(1,2));
 //	  log("%d	%d	%d	%d	%d\n",USB_Send_data[0],USB_Send_data[1]\
 //			  ,USB_Send_data[2],USB_Send_data[3],USB_Send_data[4]);
 	  uint16_t configDP;

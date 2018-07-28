@@ -1,7 +1,7 @@
 [PreviousGenFiles]
-HeaderPath=C:/Users/ng_we/Desktop/project/LogicAnalyzer/Inc
+HeaderPath=C:/Users/ng_we/Desktop/project/Trash/LogicAnalyzer/Inc
 HeaderFiles=stm32f1xx_it.h;stm32f1xx_hal_conf.h;main.h;usb_device.h;usbd_conf.h;usbd_desc.h;usbd_cdc_if.h;usbd_storage_if.h;usbd_custom_hid_if.h;
-SourcePath=C:/Users/ng_we/Desktop/project/LogicAnalyzer/Src
+SourcePath=C:/Users/ng_we/Desktop/project/Trash/LogicAnalyzer/Src
 SourceFiles=stm32f1xx_it.c;stm32f1xx_hal_msp.c;main.c;usb_device.c;usbd_conf.c;usbd_desc.c;usbd_cdc_if.c;usbd_storage_if.c;usbd_custom_hid_if.c;
 
 [PreviousLibFiles]
