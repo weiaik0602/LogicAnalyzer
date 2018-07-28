@@ -59,36 +59,36 @@
 
 /* Private define ------------------------------------------------------------*/
 
-#define DP4_Pin GPIO_PIN_2
-#define DP4_GPIO_Port GPIOB
-#define DP4_EXTI_IRQn EXTI2_IRQn
-#define DP0_Pin GPIO_PIN_8
-#define DP0_GPIO_Port GPIOA
-#define DP0_EXTI_IRQn EXTI9_5_IRQn
-#define DP1_Pin GPIO_PIN_9
-#define DP1_GPIO_Port GPIOA
-#define DP1_EXTI_IRQn EXTI9_5_IRQn
-#define DP2_Pin GPIO_PIN_10
-#define DP2_GPIO_Port GPIOA
-#define DP2_EXTI_IRQn EXTI15_10_IRQn
-#define DP3_Pin GPIO_PIN_15
-#define DP3_GPIO_Port GPIOA
-#define DP3_EXTI_IRQn EXTI15_10_IRQn
-#define DP5_Pin GPIO_PIN_3
-#define DP5_GPIO_Port GPIOB
-#define DP5_EXTI_IRQn EXTI3_IRQn
-#define DP6_Pin GPIO_PIN_4
-#define DP6_GPIO_Port GPIOB
-#define DP6_EXTI_IRQn EXTI4_IRQn
-#define DP7_Pin GPIO_PIN_5
-#define DP7_GPIO_Port GPIOB
+#define DP0_Pin GPIO_PIN_2
+#define DP0_GPIO_Port GPIOB
+#define DP0_EXTI_IRQn EXTI2_IRQn
+#define DP6_Pin GPIO_PIN_8
+#define DP6_GPIO_Port GPIOA
+#define DP6_EXTI_IRQn EXTI9_5_IRQn
+#define DP7_Pin GPIO_PIN_9
+#define DP7_GPIO_Port GPIOA
 #define DP7_EXTI_IRQn EXTI9_5_IRQn
-#define DP8_Pin GPIO_PIN_6
-#define DP8_GPIO_Port GPIOB
-#define DP8_EXTI_IRQn EXTI9_5_IRQn
-#define DP9_Pin GPIO_PIN_7
-#define DP9_GPIO_Port GPIOB
-#define DP9_EXTI_IRQn EXTI9_5_IRQn
+#define DP8_Pin GPIO_PIN_10
+#define DP8_GPIO_Port GPIOA
+#define DP8_EXTI_IRQn EXTI15_10_IRQn
+#define DP9_Pin GPIO_PIN_15
+#define DP9_GPIO_Port GPIOA
+#define DP9_EXTI_IRQn EXTI15_10_IRQn
+#define DP1_Pin GPIO_PIN_3
+#define DP1_GPIO_Port GPIOB
+#define DP1_EXTI_IRQn EXTI3_IRQn
+#define DP2_Pin GPIO_PIN_4
+#define DP2_GPIO_Port GPIOB
+#define DP2_EXTI_IRQn EXTI4_IRQn
+#define DP3_Pin GPIO_PIN_5
+#define DP3_GPIO_Port GPIOB
+#define DP3_EXTI_IRQn EXTI9_5_IRQn
+#define DP4_Pin GPIO_PIN_6
+#define DP4_GPIO_Port GPIOB
+#define DP4_EXTI_IRQn EXTI9_5_IRQn
+#define DP5_Pin GPIO_PIN_7
+#define DP5_GPIO_Port GPIOB
+#define DP5_EXTI_IRQn EXTI9_5_IRQn
 
 /* ########################## Assert Selection ############################## */
 /**

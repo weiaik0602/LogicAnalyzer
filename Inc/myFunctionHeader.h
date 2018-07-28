@@ -22,12 +22,15 @@ extern volatile uint32_t myCurrentTick;
 extern volatile uint8_t ADC_ReadyFlag;
 extern volatile uint8_t USB_CDC_MYSTATE;
 extern volatile uint8_t configBuffer[5];
-extern volatile uint8_t DPPortArray[];
-extern volatile uint8_t DPDataArray[];
 extern volatile uint8_t sizeofDP;
+extern uint8_t DPPortArray[];
+extern uint8_t DPDataArray[];
 extern volatile uint16_t counterDiff;
 extern volatile uint32_t tickDiff;
-
+extern volatile uint8_t DPUpData;
+extern volatile uint8_t DPDownData;
+extern volatile uint8_t DPUpTable[256];
+extern volatile uint8_t DPDownTable[256];
 //private definition
 #define READY	1
 #define NOT_READY	0

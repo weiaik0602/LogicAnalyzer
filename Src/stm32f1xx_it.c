@@ -37,6 +37,7 @@
 
 /* USER CODE BEGIN 0 */
 #include "myHeader.h"
+#include "MyFunction.h"
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
@@ -313,7 +314,7 @@ void TIM3_IRQHandler(void)
 	  HAL_ADC_Start_DMA(&hadc1, buffer, 10);
 
   }
-  Counter_Difference_Cal();
+  TimeDiffCalculate();
   USB_CDC_MYSTATE=IDLE;
   /* USER CODE END TIM3_IRQn 1 */
 }

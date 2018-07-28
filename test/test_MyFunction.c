@@ -51,3 +51,131 @@ void test_TimeDiffCalculate(void){
   TEST_ASSERT_EQUAL(counterDiff,0x156);
 
 }
+void test_GenerateDownTableAccordingDPPortArray_GivenDP02467(void){
+  DPPortArray[0]=0;
+  DPPortArray[1]=2;
+  DPPortArray[2]=4;
+  DPPortArray[3]=6;
+  DPPortArray[4]=7;
+  sizeofDP=5;
+  GenerateDownTableAccordingDPPortArray();
+  /*This table is only for the lower part of DP,
+  which is from DP0 to DP5(B2 to B7)
+  | B7 | B6 | B5 | B4 | B3 | B2 | B1 | B0 |  correspond to
+  | D5 | D4 | D3 | D2 | D1 | D0 | XX | XX |*/
+  //The wanted port is 0,2,4(6 and 7 dont care)
+  //0x3e = 0011 1110
+  //DP0 2 and 4=B2 B4 B6
+  //011=3
+  TEST_ASSERT_EQUAL(DPDownTable[0x3e],3);
+  //0x45 =0100 0101
+  //DP0 2 and 4=B2 B4 B6
+  //101=5
+  TEST_ASSERT_EQUAL(DPDownTable[0x45],5);
+  //0x98 =1001 1000
+  //DP0 2 and 4=B2 B4 B6
+  //010=2
+  TEST_ASSERT_EQUAL(DPDownTable[0x98],2);
+  //0xe5 =1110 0101
+  //DP0 2 and 4=B2 B4 B6
+  //101=5
+  TEST_ASSERT_EQUAL(DPDownTable[0xe5],5);
+  //0xf8 =1111 1000
+  //DP0 2 and 4=B2 B4 B6
+  //110=6
+  TEST_ASSERT_EQUAL(DPDownTable[0xf8],6);
+}
+void test_GenerateDownTableAccordingDPPortArray_GivenDP012345(void){
+  DPPortArray[0]=0;
+  DPPortArray[1]=1;
+  DPPortArray[2]=2;
+  DPPortArray[3]=3;
+  DPPortArray[4]=4;
+  DPPortArray[5]=5;
+  sizeofDP=6;
+  GenerateDownTableAccordingDPPortArray();
+  /*This table is only for the lower part of DP,
+  which is from DP0 to DP5(B2 to B7)
+  | B7 | B6 | B5 | B4 | B3 | B2 | B1 | B0 |  correspond to
+  | D5 | D4 | D3 | D2 | D1 | D0 | XX | XX |*/
+  //The wanted port is 0,1,2,3,4,5
+  //0xf7 = 1111 0111
+  //DP0 1 2 3 4 5 = B 2 3 4 5 6 7
+  //111101=3D
+  TEST_ASSERT_EQUAL(DPDownTable[0xf7],0x3d);
+  //0x9c =1001 1100
+  //DP0 1 2 3 4 5 = B 2 3 4 5 6 7
+  //100111=0x27
+  TEST_ASSERT_EQUAL(DPDownTable[0x9c],0x27);
+  //0xea=1110 1010
+  //DP0 1 2 3 4 5 = B 2 3 4 5 6 7
+  //111010=0x3a
+  TEST_ASSERT_EQUAL(DPDownTable[0xea],0x3a);
+  //0x0b=0000 1011
+  //DP0 1 2 3 4 5 = B 2 3 4 5 6 7
+  //000010=2
+  TEST_ASSERT_EQUAL(DPDownTable[0x0b],2);
+  //0x01=0000 0001
+  //DP0 1 2 3 4 5 = B 2 3 4 5 6 7
+  //000000
+  TEST_ASSERT_EQUAL(DPDownTable[0x01],0);
+}
+
+void test_GenerateUpTableAccordingDPPortArray_GivenDP6789(void){
+  DPPortArray[0]=6;
+  DPPortArray[1]=7;
+  DPPortArray[2]=8;
+  DPPortArray[3]=9;
+  sizeofDP=4;
+  GenerateUpTableAccordingDPPortArray();
+  /*This table is only for the upper part of DP(port A),
+  which is from DP6 to DP9(A8 A9 A10 A15)
+  | A15 | A14 | A13 | A12 | A11 | A10 | A9  | A8  |  correspond to
+  | DP9 | xxx | xxx | xxx | xxx | DP8 | DP7 | DP6 |*/
+  //The wanted port is DP 6 7 8 9
+  //0xf7 = 1111 0111
+  //1111=0xF
+  TEST_ASSERT_EQUAL(DPUpTable[0xf7],0xf);
+  //0x9c =1001 1100
+  //1100=0xc
+  TEST_ASSERT_EQUAL(DPUpTable[0x9c],0xc);
+  //0xea=1110 1010
+  //1010=0xa
+  TEST_ASSERT_EQUAL(DPUpTable[0xea],0xa);
+  //0x0b=0000 1011
+  //0011=3
+  TEST_ASSERT_EQUAL(DPUpTable[0x0b],3);
+  //0x01=0000 0001
+  //0001
+  TEST_ASSERT_EQUAL(DPUpTable[0x01],1);
+}
+
+void test_GenerateUpTableAccordingDPPortArray_GivenDP02468(void){
+  DPPortArray[0]=0;
+  DPPortArray[1]=2;
+  DPPortArray[2]=4;
+  DPPortArray[3]=6;
+  DPPortArray[4]=8;
+  sizeofDP=5;
+  GenerateUpTableAccordingDPPortArray();
+  /*This table is only for the upper part of DP(port A),
+  which is from DP6 to DP9(A8 A9 A10 A15)
+  | A15 | A14 | A13 | A12 | A11 | A10 | A9  | A8  |  correspond to
+  | DP9 | xxx | xxx | xxx | xxx | DP8 | DP7 | DP6 |*/
+  //The wanted port is DP 6 8
+  //0x3e = 0011 1110
+  //10=2
+  TEST_ASSERT_EQUAL(DPUpTable[0x3e],2);
+  //0x45 =0100 0101
+  //11=3
+  TEST_ASSERT_EQUAL(DPUpTable[0x45],3);
+  //0x98 =1001 1000
+  //00
+  TEST_ASSERT_EQUAL(DPUpTable[0x98],0);
+  //0xe5 =1110 0101
+  //11
+  TEST_ASSERT_EQUAL(DPUpTable[0xe5],3);
+  //0xf8 =1111 1000
+  //00
+  TEST_ASSERT_EQUAL(DPUpTable[0xf8],0);
+}
