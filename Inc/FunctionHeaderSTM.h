@@ -5,16 +5,18 @@
  *      Author: ng_we
  */
 #include <stdint.h>
-// #include "main.h"
-// #include "stm32f1xx_hal.h"
-// #include "usb_device.h"
 #include <stdio.h>
-//#include "usbd_cdc_if.h"
+#include "stm32_hal_legacy.h"
+#include "MyFunction.h"
+#include "main.h"
+#include "stm32f1xx_hal.h"
+#include "usb_device.h"
+#include "usbd_cdc_if.h"
 
 //global variable
-
-extern uint32_t adc[10], buffer[10];  // define variables
-// extern ADC_HandleTypeDef hadc1;
+// define variables
+extern uint32_t adc[10], buffer[10];
+extern ADC_HandleTypeDef hadc1;
 extern volatile uint16_t myOldCounter;
 extern volatile uint16_t myCurrentCounter;
 extern volatile uint32_t myOldTick;
@@ -31,6 +33,8 @@ extern volatile uint8_t DPUpData;
 extern volatile uint8_t DPDownData;
 extern volatile uint8_t DPUpTable[256];
 extern volatile uint8_t DPDownTable[256];
+extern volatile uint8_t time[];
+extern uint8_t sizeofTimeArray;
 //private definition
 #define READY	1
 #define NOT_READY	0

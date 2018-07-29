@@ -2,8 +2,9 @@
 #include "mockFunc.h"
 #include <stdio.h>
 #include <stdint.h>
+#include "stm32_hal_legacy.h"
 //place the global variable//
-//need to be remove after this//
+uint32_t adc[10], buffer[10];
 volatile uint16_t myOldCounter;
 volatile uint16_t myCurrentCounter;
 volatile uint32_t myOldTick;
@@ -21,6 +22,11 @@ volatile uint8_t DPUpData;
 volatile uint8_t DPDownData;
 volatile uint8_t DPUpTable[256];
 volatile uint8_t DPDownTable[256];
+uint8_t DPUpSize=0;
+uint8_t DPDownSize=0;
+volatile uint8_t time[];
+uint8_t sizeofTimeArray;
+uint16_t DPData;
 /////////////////////////////////////////
 
 
@@ -49,54 +55,14 @@ void AssignPortToArray(){
 		PortNum+=1;
 	 }
 }
-
-
-
 void TimeDiffCalculate()
 {
 	//get current counter
-	myCurrentCounter=__HAL_TIM_GetCounter(&htim2);
+	myCurrentCounter=0;
 	counterDiff=myCurrentCounter-myOldCounter;
 	tickDiff=myCurrentTick-myOldTick;
   myOldCounter=myCurrentCounter;
 	myOldTick=myCurrentTick;
-}
-
-void AssignReadDataToArray(){
-	for(int i=0;i<sizeofDP;i++){
-		switch(DPPortArray[i]){
-		// case 0:
-		// 			DPDataArray[i]=HAL_GPIO_ReadPin(DP0_GPIO_Port,DP0_Pin);
-		// 			break;
-		// case 1:
-		// 			DPDataArray[i]=HAL_GPIO_ReadPin(DP1_GPIO_Port,DP1_Pin);
-		// 			break;
-		// case 2:
-		// 			DPDataArray[i]=HAL_GPIO_ReadPin(DP2_GPIO_Port,DP2_Pin);
-		// 			break;
-		// case 3:
-		// 			DPDataArray[i]=HAL_GPIO_ReadPin(DP3_GPIO_Port,DP3_Pin);
-		// 			break;
-		// case 4:
-		// 			DPDataArray[i]=HAL_GPIO_ReadPin(DP4_GPIO_Port,DP4_Pin);
-		// 			break;
-		// case 5:
-		// 			DPDataArray[i]=HAL_GPIO_ReadPin(DP5_GPIO_Port,DP5_Pin);
-		// 			break;
-		// case 6:
-		// 			DPDataArray[i]=HAL_GPIO_ReadPin(DP6_GPIO_Port,DP6_Pin);
-		// 			break;
-		// case 7:
-		// 			DPDataArray[i]=HAL_GPIO_ReadPin(DP7_GPIO_Port,DP7_Pin);
-		// 			break;
-		// case 8:
-		// 			DPDataArray[i]=HAL_GPIO_ReadPin(DP8_GPIO_Port,DP8_Pin);
-		// 			break;
-		// case 9:
-		// 			DPDataArray[i]=HAL_GPIO_ReadPin(DP9_GPIO_Port,DP9_Pin);
-		// 			break;
-		}
-	}
 }
 void GenerateDownTableAccordingDPPortArray(){
   /*This table is only for the lower part of DP(port B),
@@ -110,11 +76,11 @@ void GenerateDownTableAccordingDPPortArray(){
     for(int y=0;y<8;y++){
       data[y]=(i>>y)&1;
     }
-    uint8_t counter=0;
+    DPDownSize=0;
     for(int z=0;z<sizeofDP;z++){
       if(DPPortArray[z]<6){
-      result=((data[DPPortArray[z]+2])<<(counter))|result;
-      counter++;
+      result=((data[DPPortArray[z]+2])<<(DPDownSize))|result;
+      DPDownSize++;
       }
     }
     DPDownTable[i]=result;
@@ -133,22 +99,48 @@ void GenerateUpTableAccordingDPPortArray(){
       data[y]=(i>>y)&0x01;
 
     }
-    uint8_t counter=0;
+    DPUpSize=0;
     for(int z=0;z<sizeofDP;z++){
       if(DPPortArray[z]>5){
         if(DPPortArray[z]==9){
-          result=((data[7])<<(counter))|result;
-          counter++;
+          result=((data[7])<<(DPUpSize))|result;
+          DPUpSize++;
         }
         else{
-          result=((data[DPPortArray[z]-6])<<(counter))|result;
-          counter++;
+          result=((data[DPPortArray[z]-6])<<(DPUpSize))|result;
+          DPUpSize++;
         }
       }
     }
     DPUpTable[i]=result;
   }
 }
-void ArrangeTimeArray(){
 
+void ArrangeTimeArray(){
+  memset((void*)&time[0], 0, sizeofTimeArray);
+  if(tickDiff<128)  //7bit
+    sizeofTimeArray=1;
+  else if(tickDiff<16384) //14bit
+    sizeofTimeArray=2;
+  else if(tickDiff<2097152) //21bit
+    sizeofTimeArray=3;
+  else if(tickDiff<268435456) //28bit
+    sizeofTimeArray=4;
+  else if(tickDiff<4294967296)  //32bit (max)
+    sizeofTimeArray=5;
+
+  for(int i=0;i<sizeofTimeArray;i++){
+    //the last byte, dont add anything('0')
+    if(i==0){
+      time[i]=((tickDiff>>i*7)&0x7F);
+    }
+    //not last byte, add '1' flag infront
+    else
+      time[i]=((tickDiff>>i*7)&0x7F)|0x80;
+  }
+}
+void PackingDataForDP(){
+  uint8_t DPUpData=(ReadGpioxIDR(A)>>8)&0xFF;
+  uint8_t DPDownData=ReadGpioxIDR(B)&0xFF;
+  DPData=((DPUpTable[DPUpData])<<DPDownSize)|DPDownTable[DPDownData];
 }

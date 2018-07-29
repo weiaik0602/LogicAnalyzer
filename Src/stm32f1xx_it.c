@@ -36,8 +36,7 @@
 #include "stm32f1xx_it.h"
 
 /* USER CODE BEGIN 0 */
-#include "myHeader.h"
-#include "MyFunction.h"
+#include "FunctionHeaderSTM.h"
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/

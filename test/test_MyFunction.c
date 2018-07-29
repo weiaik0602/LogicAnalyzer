@@ -1,7 +1,7 @@
 #include "unity.h"
 #include "MyFunction.h"
 #include "mock_mockFunc.h"
-#include "myFunctionHeader.h"
+#include "FunctionHeaderTest.h"
 
 void setUp(void)
 {
@@ -178,4 +178,62 @@ void test_GenerateUpTableAccordingDPPortArray_GivenDP02468(void){
   //0xf8 =1111 1000
   //00
   TEST_ASSERT_EQUAL(DPUpTable[0xf8],0);
+}
+
+void test_ArrangeTimeArrayExpect1byte(void){
+  tickDiff=33;
+  ArrangeTimeArray();
+  //When the diff is <128,1 byte is enough
+  TEST_ASSERT_EQUAL(time[0],33);
+  TEST_ASSERT_EQUAL(time[1],0);
+}
+void test_ArrangeTimeArrayExpect3byte(void){
+  tickDiff=1564852;
+  ArrangeTimeArray();
+  //When the 16384<diff<2097152,3 byte is enough
+  //1st byte will be 0(lower 7-bit)
+  //1564852=0001 0111 1110 0000 1011 0100
+  TEST_ASSERT_EQUAL(time[0],0x34);
+  //2nd byte = 1(medium 7-bit)
+  TEST_ASSERT_EQUAL(time[1],0xC1);
+  //3rdbyte =1(higher 7-bit)
+  TEST_ASSERT_EQUAL(time[2],0xDF);
+  //4th byte =0
+  TEST_ASSERT_EQUAL(time[3],0);
+}
+void test_ArrangeTimeArrayExpect2byte(void){
+  tickDiff=15780;
+  ArrangeTimeArray();
+  //When the 128<diff<16384,2 byte is enough
+  //1st byte will be 0(lower 7-bit)
+  //15780=0011 1101 1010 0100
+  TEST_ASSERT_EQUAL(time[0],0x24);
+  //2nd byte = 1(higher 7-bit)
+  TEST_ASSERT_EQUAL(time[1],0xFB);
+  //3rdbyte =0
+  TEST_ASSERT_EQUAL(time[2],0);
+}
+void test_PackingDataForDP(void){
+  //assuming these are the port we wanted
+  //DP 0 2 4 6 8
+  DPPortArray[0]=0;
+  DPPortArray[1]=2;
+  DPPortArray[2]=4;
+  DPPortArray[3]=6;
+  DPPortArray[4]=8;
+  sizeofDP=5;
+  //Assuming GPIOA will return 0xefc8
+  //Assuming GPIOB will return 0xc6a9
+  ReadGpioxIDR_ExpectAndReturn(A,0xefc8);
+  ReadGpioxIDR_ExpectAndReturn(B,0x98a2);
+  //generate both table
+  GenerateUpTableAccordingDPPortArray();
+  GenerateDownTableAccordingDPPortArray();
+  //pack data
+  PackingDataForDP();
+  //DP 6 and 8 from GPIOA 8 10
+  //1 1
+  //DP0 2 4 from GPIOB 2 4 6
+  //0 0 0
+  TEST_ASSERT_EQUAL(DPData,0x18);
 }

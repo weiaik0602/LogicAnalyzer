@@ -53,9 +53,8 @@
 
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
-#include "myHeader.h"
 #include "stm32_hal_legacy.h"
-#include "MyFunction.h"
+#include "FunctionHeaderSTM.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -67,21 +66,21 @@ TIM_HandleTypeDef htim3;
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
-uint32_t adc[10], buffer[10];  // define variables
-volatile uint8_t ADC_ReadyFlag;
-volatile uint16_t myOldCounter=0;
-volatile uint16_t myCurrentCounter=0;
-volatile uint32_t myOldTick=0;
-volatile uint32_t myCurrentTick=0;
-volatile uint16_t counterDiff=0;
-volatile uint32_t tickDiff=0;
-volatile uint8_t USB_CDC_MYSTATE=IDLE;
-volatile uint8_t configBuffer[5];
-uint8_t DP_GPIOA;
-uint8_t DP_GPIOB;
-volatile uint8_t sizeofDP;
-volatile uint8_t DPPortArray[];
-volatile uint8_t DPDataArray[];
+//uint32_t adc[10], buffer[10];  // define variables
+//volatile uint8_t ADC_ReadyFlag;
+//volatile uint16_t myOldCounter=0;
+//volatile uint16_t myCurrentCounter=0;
+//volatile uint32_t myOldTick=0;
+//volatile uint32_t myCurrentTick=0;
+//volatile uint16_t counterDiff=0;
+//volatile uint32_t tickDiff=0;
+//volatile uint8_t USB_CDC_MYSTATE=IDLE;
+//volatile uint8_t configBuffer[5];
+//uint8_t DP_GPIOA;
+//uint8_t DP_GPIOB;
+//volatile uint8_t sizeofDP;
+//volatile uint8_t DPPortArray[];
+//volatile uint8_t DPDataArray[];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -95,6 +94,7 @@ static void MX_TIM2_Init(void);
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
 extern void initialise_monitor_handles(void);
+extern uint16_t ReadGpioxIDR(char choose);
 //void Update_Old_Counter(void);
 //void Counter_Difference_Cal(void);
 //uint8_t countSetBits(uint16_t PortsAvailable);
@@ -158,24 +158,27 @@ int main(void)
 //	  log("%d	%d	%d	%d	%d\n",USB_Send_data[0],USB_Send_data[1]\
 //			  ,USB_Send_data[2],USB_Send_data[3],USB_Send_data[4]);
 	  uint16_t configDP;
+	  uint16_t Bdata=ReadGpioxIDR(B);
+	  uint16_t Adata=ReadGpioxIDR(A);
+	  log("%04X  %04X\n",Adata,Bdata);
 	  switch(USB_CDC_MYSTATE){
-	  case CONFIGURATION:
-		  configDP=(configBuffer[1]<<8)|configBuffer[2];
-		  sizeofDP=countSetBits(configDP);
-
-		  AssignPortToArray(configDP);
-		  AssignReadDataToArray();
-		  for(int i=0;i<sizeofDP;i++){
-		  	log("The port %d value is %d\n",DPPortArray[i],DPDataArray[i]);
-		  }
-		  USB_CDC_MYSTATE=IDLE;
-	   break;
-	  case SEND_DATA:
-		  break;
-	  case IDLE:
-		  log("%d	%d\n",counterDiff,tickDiff);
-		  USB_CDC_MYSTATE=SEND_DATA;
-		  break;
+//	  case CONFIGURATION:
+//		  configDP=(configBuffer[1]<<8)|configBuffer[2];
+//		  sizeofDP=countSetBits(configDP);
+//
+//		  AssignPortToArray(configDP);
+//		  AssignReadDataToArray();
+//		  for(int i=0;i<sizeofDP;i++){
+//		  	log("The port %d value is %d\n",DPPortArray[i],DPDataArray[i]);
+//		  }
+//		  USB_CDC_MYSTATE=IDLE;
+//	   break;
+//	  case SEND_DATA:
+//		  break;
+//	  case IDLE:
+//		  log("%d	%d\n",counterDiff,tickDiff);
+//		  USB_CDC_MYSTATE=SEND_DATA;
+//		  break;
 	  }
 
 	  if(ADC_ReadyFlag==READY){
@@ -537,6 +540,12 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 	   adc[i] = buffer[i];  // store the values in adc[]
 	}
 	//log("channel0: %d		channel1: %d\n",adc[0],adc[1]);
+}
+uint16_t ReadGpioxIDR(char choose){
+	if(choose==A)
+		return GPIOA->IDR;
+	else if(choose==B)
+		return GPIOB->IDR;
 }
 /* USER CODE END 4 */
 
