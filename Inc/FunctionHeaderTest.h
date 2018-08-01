@@ -6,7 +6,7 @@
  */
 #include <stdint.h>
 #include <stdio.h>
-
+#include "MyFunction.h"
 
 //global variable
  // define variables
@@ -30,12 +30,12 @@ extern volatile uint8_t DPDownTable[256];
 extern volatile uint8_t time[];
 extern uint8_t sizeofTimeArray;
 extern uint16_t DPData;
-//private definition
-#define READY	1
-#define NOT_READY	0
-#define CONFIGURATION 0x22
-#define SEND_DATA 0x33
-#define IDLE 0xFF
+extern uint8_t packet[256];
+extern volatile uint8_t stateMachine_State;
+extern uint8_t USB_SendData[];
+extern uint8_t packetCounter;
+// definition
+
 #define SEMIHOSTING
 
 

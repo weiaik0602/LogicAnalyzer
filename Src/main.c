@@ -95,6 +95,7 @@ static void MX_TIM2_Init(void);
 /* Private function prototypes -----------------------------------------------*/
 extern void initialise_monitor_handles(void);
 extern uint16_t ReadGpioxIDR(char choose);
+extern uint16_t GetCurrentCounterTim2();
 //void Update_Old_Counter(void);
 //void Counter_Difference_Cal(void);
 //uint8_t countSetBits(uint16_t PortsAvailable);
@@ -540,6 +541,9 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 	   adc[i] = buffer[i];  // store the values in adc[]
 	}
 	//log("channel0: %d		channel1: %d\n",adc[0],adc[1]);
+}
+uint16_t GetCurrentCounterTim2(){
+	return __HAL_TIM_GetCounter(&htim2);
 }
 uint16_t ReadGpioxIDR(char choose){
 	if(choose==A)

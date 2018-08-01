@@ -42,7 +42,7 @@ void test_AssignPortToArrayDP14678(void){
 void test_TimeDiffCalculate(void){
   //Ccounter=0x156  Ctick=30
   //OldCounter=0    Oldtick=0
-  __HAL_TIM_GetCounter_ExpectAndReturn(&htim2,0x156);
+  GetCurrentCounterTim2_ExpectAndReturn(0x156);
   myCurrentTick=30;
   myOldCounter=0;
   myOldTick=0;
@@ -213,7 +213,7 @@ void test_ArrangeTimeArrayExpect2byte(void){
   //3rdbyte =0
   TEST_ASSERT_EQUAL(time[2],0);
 }
-void test_PackingDataForDP(void){
+void test_PackingDataForDPExpected0x18(void){
   //assuming these are the port we wanted
   //DP 0 2 4 6 8
   DPPortArray[0]=0;
@@ -223,7 +223,7 @@ void test_PackingDataForDP(void){
   DPPortArray[4]=8;
   sizeofDP=5;
   //Assuming GPIOA will return 0xefc8
-  //Assuming GPIOB will return 0xc6a9
+  //Assuming GPIOB will return 0x98a2
   ReadGpioxIDR_ExpectAndReturn(A,0xefc8);
   ReadGpioxIDR_ExpectAndReturn(B,0x98a2);
   //generate both table
@@ -236,4 +236,134 @@ void test_PackingDataForDP(void){
   //DP0 2 4 from GPIOB 2 4 6
   //0 0 0
   TEST_ASSERT_EQUAL(DPData,0x18);
+}
+void test_PackingDataForDPExpected0x37(void){
+  //assuming these are the port we wanted
+  //DP 1 3 5 7 8 9
+  DPPortArray[0]=1;
+  DPPortArray[1]=3;
+  DPPortArray[2]=5;
+  DPPortArray[3]=7;
+  DPPortArray[4]=8;
+  DPPortArray[5]=9;
+  sizeofDP=6;
+  //Assuming GPIOA will return 0x951f
+  //Assuming GPIOB will return 0xc6a9
+  ReadGpioxIDR_ExpectAndReturn(A,0x951f);
+  ReadGpioxIDR_ExpectAndReturn(B,0xc6a9);
+  //generate both table
+  GenerateUpTableAccordingDPPortArray();
+  GenerateDownTableAccordingDPPortArray();
+  //pack data
+  PackingDataForDP();
+  //DP 7,8,9 from GPIOA 9 10 15
+  //1 1 0
+  //DP 1 3 5 from GPIOB 3 5 7
+  //1 1 1
+  TEST_ASSERT_EQUAL(DPData,0x37);
+}
+void test_InterpretCommand_CONFIGDP(void){
+  //set data
+  packet[0]=STATE_CONFIG;
+  packet[1]=0xff;
+  packet[2]=1;
+  packet[3]=0xD2;
+  packet[4]=0xff;
+  packet[5]=0xff;
+  //set state
+  stateMachine_State=STATE_CONFIG;
+  //function
+  InterpretCommand();
+  //TestPort
+  TEST_ASSERT_EQUAL(DPPortArray[0],1);
+  TEST_ASSERT_EQUAL(DPPortArray[1],4);
+  TEST_ASSERT_EQUAL(DPPortArray[2],6);
+  TEST_ASSERT_EQUAL(DPPortArray[3],7);
+  TEST_ASSERT_EQUAL(DPPortArray[4],8);
+  //TestTable
+  //uptable DP 6 7 8
+  //        PA 8 9 10
+  //take data from 0x78 - 000
+  TEST_ASSERT_EQUAL(DPUpTable[0x78],0);
+  //take data from 0x6f - 111
+  TEST_ASSERT_EQUAL(DPUpTable[0x6f],7);
+  //take data from 0xe2 - 010
+  TEST_ASSERT_EQUAL(DPUpTable[0xe2],2);
+  //downtable DP 1 4
+  //          PB 3 6
+  //take data from 0x9b -01
+  TEST_ASSERT_EQUAL(DPDownTable[0x9b],1);
+  //take data from 0x32 - 00
+  TEST_ASSERT_EQUAL(DPDownTable[0x32],0);
+  //take data from 0xe5 - 10
+  TEST_ASSERT_EQUAL(DPDownTable[0xe5],2);
+}
+void test_InterpretCommand_SEND_DP(void){
+  //mock
+  GetCurrentCounterTim2_ExpectAndReturn(0x156);
+  ReadGpioxIDR_ExpectAndReturn(A,0x951f);
+  ReadGpioxIDR_ExpectAndReturn(B,0xc6a9);
+  CDC_Transmit_FS_ExpectAndReturn(&USB_SendData,5,0xf);
+  myCurrentTick=2010152;
+  myOldCounter=0;
+  myOldTick=0;
+  //set state
+  stateMachine_State=STATE_SEND_DP;
+  //function
+  InterpretCommand();
+  //test time
+  TEST_ASSERT_EQUAL(time[0],40);
+  TEST_ASSERT_EQUAL(time[1],216);
+  TEST_ASSERT_EQUAL(time[2],250);
+  //Test DPData
+  //DP 6 7 8 =A 8 9 10 =101
+  //DP 1 4 = B 3 6 = 01
+  TEST_ASSERT_EQUAL(DPData,21);
+  //TEST data going to sent out
+  //Data arangement
+  // | time*x              | DP*2 |
+  // |  sizeofTimeArray+2  | 1-0  |
+  TEST_ASSERT_EQUAL(USB_SendData[0],21);
+  TEST_ASSERT_EQUAL(USB_SendData[1],0);
+  TEST_ASSERT_EQUAL(USB_SendData[2],40);
+  TEST_ASSERT_EQUAL(USB_SendData[3],216);
+  TEST_ASSERT_EQUAL(USB_SendData[4],250);
+}
+void test_InterpretCommand_Send_ACK(void){
+  CDC_Transmit_FS_ExpectAndReturn(&USB_SendData,2,0xf);
+  //set state
+  stateMachine_State=STATE_SEND_ACK;
+  InterpretCommand();
+  TEST_ASSERT_EQUAL(stateMachine_State,STATE_IDLE);
+}
+void test_ReceivePacket_ExpectWriteDataIntoPacket(void){
+  //0x5 = length of data behind
+  uint8_t M1[]={STATE_CONFIG,5};
+  ReceivePacket((uint8_t*)&M1,(uint32_t*)sizeof(M1));
+  //check data in packet
+  TEST_ASSERT_EQUAL(packet[0],STATE_CONFIG);
+  TEST_ASSERT_EQUAL(packet[1],5);
+  //check packetCounter
+  TEST_ASSERT_EQUAL(packetCounter,2);
+}
+void test_ReceivePacket_ExpectChangeStateAfterFull(void){
+  //0x5 = length of data behind
+  uint8_t M1[]={STATE_CONFIG,5};
+  //set state to IDLE 1st
+  stateMachine_State=STATE_IDLE;
+  //reset the packetCounter due to previous test
+  packetCounter=0;
+  ReceivePacket((uint8_t*)&M1,(uint32_t*)sizeof(M1));
+  //the data behind size =5
+  uint8_t M2[]={0x1,0x2,0x3,0x4,0x5};
+  ReceivePacket((uint8_t*)&M2,(uint32_t*)sizeof(M2));
+  TEST_ASSERT_EQUAL(packet[0],STATE_CONFIG);
+  TEST_ASSERT_EQUAL(packet[1],5);
+  TEST_ASSERT_EQUAL(packet[2],0x1);
+  TEST_ASSERT_EQUAL(packet[3],0x2);
+  TEST_ASSERT_EQUAL(packet[4],0x3);
+  TEST_ASSERT_EQUAL(packet[5],0x4);
+  TEST_ASSERT_EQUAL(packet[6],0x5);
+  TEST_ASSERT_EQUAL(stateMachine_State,STATE_CONFIG);
+  TEST_ASSERT_EQUAL(packetCounter,0);
 }

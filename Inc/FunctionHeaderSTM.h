@@ -6,7 +6,6 @@
  */
 #include <stdint.h>
 #include <stdio.h>
-#include "stm32_hal_legacy.h"
 #include "MyFunction.h"
 #include "main.h"
 #include "stm32f1xx_hal.h"
@@ -36,11 +35,6 @@ extern volatile uint8_t DPDownTable[256];
 extern volatile uint8_t time[];
 extern uint8_t sizeofTimeArray;
 //private definition
-#define READY	1
-#define NOT_READY	0
-#define CONFIGURATION 0x22
-#define SEND_DATA 0x33
-#define IDLE 0xFF
 #define SEMIHOSTING
 
 

@@ -2,7 +2,7 @@
 #include "mockFunc.h"
 #include <stdio.h>
 #include <stdint.h>
-#include "stm32_hal_legacy.h"
+#include <stdlib.h>
 //place the global variable//
 uint32_t adc[10], buffer[10];
 volatile uint16_t myOldCounter;
@@ -11,6 +11,7 @@ volatile uint32_t myOldTick;
 volatile uint32_t myCurrentTick;
 volatile uint8_t ADC_ReadyFlag;
 volatile uint8_t USB_CDC_MYSTATE;
+volatile uint8_t stateMachine_State;
 volatile uint8_t configBuffer[]={0};
 uint8_t DPPortArray[];
 uint8_t DPDataArray[];
@@ -27,6 +28,9 @@ uint8_t DPDownSize=0;
 volatile uint8_t time[];
 uint8_t sizeofTimeArray;
 uint16_t DPData;
+volatile uint8_t packet[256];
+uint8_t USB_SendData[];
+uint8_t packetCounter;
 /////////////////////////////////////////
 
 
@@ -58,7 +62,7 @@ void AssignPortToArray(){
 void TimeDiffCalculate()
 {
 	//get current counter
-	myCurrentCounter=0;
+	myCurrentCounter=GetCurrentCounterTim2();
 	counterDiff=myCurrentCounter-myOldCounter;
 	tickDiff=myCurrentTick-myOldTick;
   myOldCounter=myCurrentCounter;
@@ -143,4 +147,53 @@ void PackingDataForDP(){
   uint8_t DPUpData=(ReadGpioxIDR(A)>>8)&0xFF;
   uint8_t DPDownData=ReadGpioxIDR(B)&0xFF;
   DPData=((DPUpTable[DPUpData])<<DPDownSize)|DPDownTable[DPDownData];
+}
+
+
+void InterpretCommand(){
+  switch(stateMachine_State){
+    case STATE_CONFIG:
+      configBuffer[0]=packet[0];
+      configBuffer[1]=packet[2];
+      configBuffer[2]=packet[3];
+      configBuffer[3]=packet[4];
+      configBuffer[4]=packet[5];
+      sizeofDP=countSetBits(configBuffer[1]<<8|configBuffer[2]);
+      AssignPortToArray();
+      GenerateUpTableAccordingDPPortArray();
+      GenerateDownTableAccordingDPPortArray();
+      memset((void*)&packet[0], 0, 256);
+      stateMachine_State=STATE_SEND_ACK;
+      break;
+    case STATE_SEND_DP:
+      TimeDiffCalculate();
+      ArrangeTimeArray();
+      PackingDataForDP();
+      uint8_t DPA[]={LOBYTE(DPData),HIBYTE(DPData)};
+      uint8_t *Sdata=(uint8_t*)malloc((sizeofTimeArray+2) );
+      Sdata=(uint8_t*)&USB_SendData;
+      memcpy(Sdata,DPA, 2);
+      memcpy(Sdata+2, (const void*)time, sizeofDP);
+      CDC_Transmit_FS((uint8_t*)&USB_SendData,(sizeofTimeArray+2));
+      stateMachine_State=STATE_SEND_ACK;
+      break;
+    case STATE_SEND_ACK:
+      USB_SendData[0]=STATE_SEND_ACK;
+      USB_SendData[1]=0;
+      CDC_Transmit_FS((uint8_t*)&USB_SendData,2);
+      stateMachine_State=STATE_IDLE;
+      break;
+    case STATE_IDLE:
+      break;
+
+  }
+}
+void ReceivePacket(uint8_t* Buf, uint32_t *Len)
+{
+  memcpy((&packet[0]+packetCounter),Buf,(uint32_t)Len);
+  packetCounter=packetCounter+(uint32_t)Len;
+  if(packetCounter==(packet[1]+2)){
+    stateMachine_State=packet[0];
+    packetCounter=0;
+  }
 }
