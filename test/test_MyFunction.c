@@ -39,6 +39,28 @@ void test_AssignPortToArrayDP14678(void){
   TEST_ASSERT_EQUAL(DPPortArray[3],7);
   TEST_ASSERT_EQUAL(DPPortArray[4],8);
 }
+void test_AssignPortToArrayAP14678(void){
+  //activate AP1,4,6,7,8
+  configBuffer[3]=1;
+  configBuffer[4]=0xD2;
+  AssignPortToArray();
+  TEST_ASSERT_EQUAL(APPortArray[0],1);
+  TEST_ASSERT_EQUAL(APPortArray[1],4);
+  TEST_ASSERT_EQUAL(APPortArray[2],6);
+  TEST_ASSERT_EQUAL(APPortArray[3],7);
+  TEST_ASSERT_EQUAL(APPortArray[4],8);
+}
+void test_AssignPortToArrayAP05786(void){
+  //activate AP0,5,7,8,6
+  configBuffer[3]=1;
+  configBuffer[4]=0xE1;
+  AssignPortToArray();
+  TEST_ASSERT_EQUAL(APPortArray[0],0);
+  TEST_ASSERT_EQUAL(APPortArray[1],5);
+  TEST_ASSERT_EQUAL(APPortArray[2],6);
+  TEST_ASSERT_EQUAL(APPortArray[3],7);
+  TEST_ASSERT_EQUAL(APPortArray[4],8);
+}
 void test_TimeDiffCalculate(void){
   //Ccounter=0x156  Ctick=30
   //OldCounter=0    Oldtick=0
@@ -262,14 +284,57 @@ void test_PackingDataForDPExpected0x37(void){
   //1 1 1
   TEST_ASSERT_EQUAL(DPData,0x37);
 }
+void test_PackingDataForAP(void){
+  //assuming these are the port we wanted
+  //AP 1 3 5 7 8 9
+  APPortArray[0]=1;
+  APPortArray[1]=3;
+  APPortArray[2]=5;
+  APPortArray[3]=7;
+  APPortArray[4]=8;
+  APPortArray[5]=9;
+  sizeofAP=6;
+  //set data for adc array
+  adc[0]=125;
+  adc[1]=3345;
+  adc[2]=789;
+  adc[3]=2120;
+  adc[4]=1145;
+  adc[5]=777;
+  adc[6]=666;
+  adc[7]=3218;
+  adc[8]=4095;
+  adc[9]=1;
+  PackingDataForAP();
+  //for adc 1 D11(3345)
+  TEST_ASSERT_EQUAL(APDataArray[0],0x11);
+  TEST_ASSERT_EQUAL(APDataArray[1],0xD);
+  //for adc 3 848(2120)
+  TEST_ASSERT_EQUAL(APDataArray[2],0x48);
+  TEST_ASSERT_EQUAL(APDataArray[3],0x8);
+  //for adc 5 309(777)
+  TEST_ASSERT_EQUAL(APDataArray[4],0x9);
+  TEST_ASSERT_EQUAL(APDataArray[5],0x3);
+
+  //for adc 7 C92(3218)
+  TEST_ASSERT_EQUAL(APDataArray[6],0x92);
+  TEST_ASSERT_EQUAL(APDataArray[7],0xC);
+  //for adc 8 FFF(4095)
+  TEST_ASSERT_EQUAL(APDataArray[8],0xFF);
+  TEST_ASSERT_EQUAL(APDataArray[9],0xF);
+  //for adc 9 1(1)
+  TEST_ASSERT_EQUAL(APDataArray[10],0x1);
+  TEST_ASSERT_EQUAL(APDataArray[11],0x0);
+
+}
 void test_InterpretCommand_CONFIGDP(void){
   //set data
   packet[0]=STATE_CONFIG;
   packet[1]=0xff;
   packet[2]=1;
   packet[3]=0xD2;
-  packet[4]=0xff;
-  packet[5]=0xff;
+  packet[4]=0x1;
+  packet[5]=0xf2;
   //set state
   stateMachine_State=STATE_CONFIG;
   //function
@@ -280,6 +345,12 @@ void test_InterpretCommand_CONFIGDP(void){
   TEST_ASSERT_EQUAL(DPPortArray[2],6);
   TEST_ASSERT_EQUAL(DPPortArray[3],7);
   TEST_ASSERT_EQUAL(DPPortArray[4],8);
+  TEST_ASSERT_EQUAL(APPortArray[0],1);
+  TEST_ASSERT_EQUAL(APPortArray[1],4);
+  TEST_ASSERT_EQUAL(APPortArray[2],5);
+  TEST_ASSERT_EQUAL(APPortArray[3],6);
+  TEST_ASSERT_EQUAL(APPortArray[4],7);
+  TEST_ASSERT_EQUAL(APPortArray[5],8);
   //TestTable
   //uptable DP 6 7 8
   //        PA 8 9 10
@@ -303,7 +374,7 @@ void test_InterpretCommand_SEND_DP(void){
   GetCurrentCounterTim2_ExpectAndReturn(0x156);
   ReadGpioxIDR_ExpectAndReturn(A,0x951f);
   ReadGpioxIDR_ExpectAndReturn(B,0xc6a9);
-  CDC_Transmit_FS_ExpectAndReturn(&USB_SendData,5,0xf);
+  CDC_Transmit_FS_ExpectAndReturn(&USB_SendData,6,0xf);
   myCurrentTick=2010152;
   myOldCounter=0;
   myOldTick=0;
@@ -321,13 +392,14 @@ void test_InterpretCommand_SEND_DP(void){
   TEST_ASSERT_EQUAL(DPData,21);
   //TEST data going to sent out
   //Data arangement
-  // | time*x              | DP*2 |
-  // |  sizeofTimeArray+2  | 1-0  |
+  // |Type         | time*x              | DP*2 |
+  // |STATE_SEND_DP|  sizeofTimeArray+2  | 1-0  |
   TEST_ASSERT_EQUAL(USB_SendData[0],21);
   TEST_ASSERT_EQUAL(USB_SendData[1],0);
   TEST_ASSERT_EQUAL(USB_SendData[2],40);
   TEST_ASSERT_EQUAL(USB_SendData[3],216);
   TEST_ASSERT_EQUAL(USB_SendData[4],250);
+  TEST_ASSERT_EQUAL(USB_SendData[5],STATE_SEND_DP);
 }
 void test_InterpretCommand_Send_ACK(void){
   CDC_Transmit_FS_ExpectAndReturn(&USB_SendData,2,0xf);
@@ -339,7 +411,7 @@ void test_InterpretCommand_Send_ACK(void){
 void test_ReceivePacket_ExpectWriteDataIntoPacket(void){
   //0x5 = length of data behind
   uint8_t M1[]={STATE_CONFIG,5};
-  ReceivePacket((uint8_t*)&M1,(uint32_t*)sizeof(M1));
+  ReceivePacket((uint8_t*)&M1,sizeof(M1));
   //check data in packet
   TEST_ASSERT_EQUAL(packet[0],STATE_CONFIG);
   TEST_ASSERT_EQUAL(packet[1],5);
@@ -353,10 +425,10 @@ void test_ReceivePacket_ExpectChangeStateAfterFull(void){
   stateMachine_State=STATE_IDLE;
   //reset the packetCounter due to previous test
   packetCounter=0;
-  ReceivePacket((uint8_t*)&M1,(uint32_t*)sizeof(M1));
+  ReceivePacket((uint8_t*)&M1,sizeof(M1));
   //the data behind size =5
   uint8_t M2[]={0x1,0x2,0x3,0x4,0x5};
-  ReceivePacket((uint8_t*)&M2,(uint32_t*)sizeof(M2));
+  ReceivePacket((uint8_t*)&M2,sizeof(M2));
   TEST_ASSERT_EQUAL(packet[0],STATE_CONFIG);
   TEST_ASSERT_EQUAL(packet[1],5);
   TEST_ASSERT_EQUAL(packet[2],0x1);

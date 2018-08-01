@@ -12,10 +12,11 @@
 #include "usb_device.h"
 #include "usbd_cdc_if.h"
 
+
+extern ADC_HandleTypeDef hadc1;
 //global variable
 // define variables
 extern uint32_t adc[10], buffer[10];
-extern ADC_HandleTypeDef hadc1;
 extern volatile uint16_t myOldCounter;
 extern volatile uint16_t myCurrentCounter;
 extern volatile uint32_t myOldTick;
@@ -34,8 +35,14 @@ extern volatile uint8_t DPUpTable[256];
 extern volatile uint8_t DPDownTable[256];
 extern volatile uint8_t time[];
 extern uint8_t sizeofTimeArray;
+extern uint16_t DPData;
+extern uint8_t packet[256];
+extern volatile uint8_t stateMachine_State;
+extern uint8_t USB_SendData[];
+extern uint8_t packetCounter;
+
 //private definition
-#define SEMIHOSTING
+//#define SEMIHOSTING
 
 
 #ifndef SEMIHOSTING

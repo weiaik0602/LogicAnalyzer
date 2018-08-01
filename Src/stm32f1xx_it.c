@@ -247,7 +247,7 @@ void DMA1_Channel1_IRQHandler(void)
   /* USER CODE END DMA1_Channel1_IRQn 0 */
   HAL_DMA_IRQHandler(&hdma_adc1);
   /* USER CODE BEGIN DMA1_Channel1_IRQn 1 */
-  ADC_ReadyFlag=READY;
+  //ADC_ReadyFlag=READY;
   /* USER CODE END DMA1_Channel1_IRQn 1 */
 }
 
@@ -307,14 +307,12 @@ void TIM3_IRQHandler(void)
   /* USER CODE END TIM3_IRQn 0 */
   HAL_TIM_IRQHandler(&htim3);
   /* USER CODE BEGIN TIM3_IRQn 1 */
-  if(ADC_ReadyFlag==NOT_READY){
+  //if(ADC_ReadyFlag==NOT_READY){
 	  //Not ready then read from adc through DMA(10 channel)
 	  //After that set the flag to ready
-	  HAL_ADC_Start_DMA(&hadc1, buffer, 10);
+	 // HAL_ADC_Start_DMA(&hadc1, buffer, 10);
 
-  }
-  TimeDiffCalculate();
-  USB_CDC_MYSTATE=IDLE;
+  //}
   /* USER CODE END TIM3_IRQn 1 */
 }
 

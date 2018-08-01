@@ -154,59 +154,18 @@ int main(void)
   	HAL_TIM_Base_Start_IT(&htim2);
   	HAL_TIM_Base_Start_IT(&htim3);
   	log("%s","Testing!!!\n");
+  	stateMachine_State=STATE_IDLE;
   while (1)
   {
 //	  log("%d	%d	%d	%d	%d\n",USB_Send_data[0],USB_Send_data[1]\
 //			  ,USB_Send_data[2],USB_Send_data[3],USB_Send_data[4]);
-	  uint16_t configDP;
-	  uint16_t Bdata=ReadGpioxIDR(B);
-	  uint16_t Adata=ReadGpioxIDR(A);
-	  log("%04X  %04X\n",Adata,Bdata);
-	  switch(USB_CDC_MYSTATE){
-//	  case CONFIGURATION:
-//		  configDP=(configBuffer[1]<<8)|configBuffer[2];
-//		  sizeofDP=countSetBits(configDP);
-//
-//		  AssignPortToArray(configDP);
-//		  AssignReadDataToArray();
-//		  for(int i=0;i<sizeofDP;i++){
-//		  	log("The port %d value is %d\n",DPPortArray[i],DPDataArray[i]);
-//		  }
-//		  USB_CDC_MYSTATE=IDLE;
-//	   break;
-//	  case SEND_DATA:
-//		  break;
-//	  case IDLE:
-//		  log("%d	%d\n",counterDiff,tickDiff);
-//		  USB_CDC_MYSTATE=SEND_DATA;
-//		  break;
-	  }
+//	  uint16_t configDP;
+//	  uint16_t Bdata=ReadGpioxIDR(B);
+//	  uint16_t Adata=ReadGpioxIDR(A);
+//	  log("%04X  %04X\n",Adata,Bdata);
 
-	  if(ADC_ReadyFlag==READY){
-		  //log("%d	%d	%d	%d	%d\n",adc[0],adc[1],adc[2],adc[3],adc[4]);
-//		  uint8_t USB_Send_data[]={time,time,\
-//				  	  	  	  	   ANALOG,	 \
-//								   HIBYTE(adc[0]),LOBYTE(adc[0]),\
-//								   HIBYTE(adc[1]),LOBYTE(adc[1]),\
-//								   HIBYTE(adc[2]),LOBYTE(adc[2]),\
-//								   HIBYTE(adc[3]),LOBYTE(adc[3]),\
-//								   HIBYTE(adc[4]),LOBYTE(adc[4]),\
-//								   HIBYTE(adc[5]),LOBYTE(adc[5]),\
-//								   HIBYTE(adc[6]),LOBYTE(adc[6]),\
-//								   HIBYTE(adc[7]),LOBYTE(adc[7]),\
-//								   HIBYTE(adc[8]),LOBYTE(adc[8]),\
-//                                   HIBYTE(adc[9]),LOBYTE(adc[9])};
-		  uint8_t USB_Send_data[]={1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23};
-		  	  if(USB_CDC_MYSTATE==1)
-		  	  {
-		  			  CDC_Transmit_FS(&USB_Send_data, 23);
-		  	  }
-		  //ADC_ReadyFlag=NOT_READY;
-	  }
-//	  if(USB_CDC_MYSTATE==1)
-//	  {
-//			  CDC_Transmit_FS(&USB_Send_data, 7);
-//	  }
+	  InterpretCommand();
+
 
   /* USER CODE END WHILE */
 

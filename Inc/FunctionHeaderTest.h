@@ -10,7 +10,7 @@
 
 //global variable
  // define variables
-extern uint32_t adc[10], buffer[10];
+extern uint16_t adc[10], buffer[10];
 extern volatile uint16_t myOldCounter;
 extern volatile uint16_t myCurrentCounter;
 extern volatile uint32_t myOldTick;
@@ -19,6 +19,7 @@ extern volatile uint8_t ADC_ReadyFlag;
 extern volatile uint8_t USB_CDC_MYSTATE;
 extern volatile uint8_t configBuffer[5];
 extern volatile uint8_t sizeofDP;
+extern volatile uint8_t sizeofAP;
 extern uint8_t DPPortArray[];
 extern uint8_t DPDataArray[];
 extern volatile uint16_t counterDiff;
@@ -34,6 +35,8 @@ extern uint8_t packet[256];
 extern volatile uint8_t stateMachine_State;
 extern uint8_t USB_SendData[];
 extern uint8_t packetCounter;
+extern uint8_t APPortArray[];
+extern uint8_t APDataArray[];
 // definition
 
 #define SEMIHOSTING

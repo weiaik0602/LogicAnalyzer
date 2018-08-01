@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 //place the global variable//
-uint32_t adc[10], buffer[10];
+uint16_t adc[10], buffer[10];
 volatile uint16_t myOldCounter;
 volatile uint16_t myCurrentCounter;
 volatile uint32_t myOldTick;
@@ -31,6 +31,8 @@ uint16_t DPData;
 volatile uint8_t packet[256];
 uint8_t USB_SendData[];
 uint8_t packetCounter;
+uint8_t APPortArray[];
+uint8_t APDataArray[];
 /////////////////////////////////////////
 
 
@@ -57,6 +59,17 @@ void AssignPortToArray(){
 		}
 		configDP >>= 1;
 		PortNum+=1;
+	 }
+  uint16_t configAP=(configBuffer[3]<<8)|configBuffer[4];
+  uint8_t APortNum=0;
+	int x=0;
+	while(configAP){
+		if(configAP&1){
+			APPortArray[x]=APortNum;
+			x++;
+		}
+		configAP >>= 1;
+		APortNum+=1;
 	 }
 }
 void TimeDiffCalculate()
@@ -148,7 +161,16 @@ void PackingDataForDP(){
   uint8_t DPDownData=ReadGpioxIDR(B)&0xFF;
   DPData=((DPUpTable[DPUpData])<<DPDownSize)|DPDownTable[DPDownData];
 }
-
+void PackingDataForAP(){
+  int even=0;
+  int odd=1;
+  for(int i=0;i<(sizeofAP);i++){
+    APDataArray[even]=LOBYTE(adc[APPortArray[i]]);
+    APDataArray[odd]=HIBYTE(adc[APPortArray[i]]);
+    even+=2;
+    odd+=2;
+  }
+}
 
 void InterpretCommand(){
   switch(stateMachine_State){
@@ -159,11 +181,12 @@ void InterpretCommand(){
       configBuffer[3]=packet[4];
       configBuffer[4]=packet[5];
       sizeofDP=countSetBits(configBuffer[1]<<8|configBuffer[2]);
+      sizeofAP=countSetBits(configBuffer[3]<<8|configBuffer[4]);
       AssignPortToArray();
       GenerateUpTableAccordingDPPortArray();
       GenerateDownTableAccordingDPPortArray();
       memset((void*)&packet[0], 0, 256);
-      stateMachine_State=STATE_SEND_ACK;
+      stateMachine_State=STATE_SEND_DP;
       break;
     case STATE_SEND_DP:
       TimeDiffCalculate();
@@ -173,9 +196,10 @@ void InterpretCommand(){
       uint8_t *Sdata=(uint8_t*)malloc((sizeofTimeArray+2) );
       Sdata=(uint8_t*)&USB_SendData;
       memcpy(Sdata,DPA, 2);
-      memcpy(Sdata+2, (const void*)time, sizeofDP);
-      CDC_Transmit_FS((uint8_t*)&USB_SendData,(sizeofTimeArray+2));
-      stateMachine_State=STATE_SEND_ACK;
+      memcpy(Sdata+2, (const void*)time, sizeofTimeArray);
+      USB_SendData[sizeofTimeArray+2]=STATE_SEND_DP;
+      CDC_Transmit_FS((uint8_t*)&USB_SendData,(sizeofTimeArray+3));
+      //stateMachine_State=STATE_SEND_ACK;
       break;
     case STATE_SEND_ACK:
       USB_SendData[0]=STATE_SEND_ACK;
@@ -188,9 +212,9 @@ void InterpretCommand(){
 
   }
 }
-void ReceivePacket(uint8_t* Buf, uint32_t *Len)
+void ReceivePacket(uint8_t* Buf, uint32_t Len)
 {
-  memcpy((&packet[0]+packetCounter),Buf,(uint32_t)Len);
+  memcpy((&packet[0]+packetCounter),Buf,Len);
   packetCounter=packetCounter+(uint32_t)Len;
   if(packetCounter==(packet[1]+2)){
     stateMachine_State=packet[0];
