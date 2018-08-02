@@ -29,7 +29,7 @@ volatile uint8_t time[];
 uint8_t sizeofTimeArray;
 uint16_t DPData;
 volatile uint8_t packet[256];
-uint8_t USB_SendData[];
+uint8_t USB_SendData[256];
 uint8_t packetCounter;
 uint8_t APPortArray[];
 uint8_t APDataArray[];
@@ -78,7 +78,7 @@ void TimeDiffCalculate()
 	myCurrentCounter=GetCurrentCounterTim2();
 	counterDiff=myCurrentCounter-myOldCounter;
 	tickDiff=myCurrentTick-myOldTick;
-  myOldCounter=myCurrentCounter;
+  //myOldCounter=myCurrentCounter;
 	myOldTick=myCurrentTick;
 }
 void GenerateDownTableAccordingDPPortArray(){
@@ -157,10 +157,12 @@ void ArrangeTimeArray(){
   }
 }
 void PackingDataForDP(){
+
   uint8_t DPUpData=(ReadGpioxIDR(A)>>8)&0xFF;
   uint8_t DPDownData=ReadGpioxIDR(B)&0xFF;
   DPData=((DPUpTable[DPUpData])<<DPDownSize)|DPDownTable[DPDownData];
 }
+
 void PackingDataForAP(){
   int even=0;
   int odd=1;
@@ -201,12 +203,31 @@ void InterpretCommand(){
       CDC_Transmit_FS((uint8_t*)&USB_SendData,(sizeofTimeArray+3));
       //stateMachine_State=STATE_SEND_ACK;
       break;
+
+
     case STATE_SEND_ACK:
       USB_SendData[0]=STATE_SEND_ACK;
       USB_SendData[1]=0;
       CDC_Transmit_FS((uint8_t*)&USB_SendData,2);
       stateMachine_State=STATE_IDLE;
       break;
+
+
+    case STATE_SEND_AP:
+      TimeDiffCalculate();
+      ArrangeTimeArray();
+      PackingDataForAP();
+      int size=sizeofAP*2;
+      uint8_t *SAPdata=(uint8_t*)malloc((sizeofTimeArray+size+1));
+      SAPdata=(uint8_t*)&USB_SendData;
+
+      memcpy(SAPdata,APDataArray,size );
+      memcpy((SAPdata+size), (const void*)time, sizeofTimeArray);
+      USB_SendData[sizeofTimeArray+size]=STATE_SEND_AP;
+      CDC_Transmit_FS((uint8_t*)&USB_SendData,(sizeofTimeArray+size));
+      break;
+
+
     case STATE_IDLE:
       break;
 

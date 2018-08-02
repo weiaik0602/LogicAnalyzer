@@ -383,9 +383,9 @@ void test_InterpretCommand_SEND_DP(void){
   //function
   InterpretCommand();
   //test time
-  TEST_ASSERT_EQUAL(time[0],40);
-  TEST_ASSERT_EQUAL(time[1],216);
-  TEST_ASSERT_EQUAL(time[2],250);
+  TEST_ASSERT_EQUAL(time[0],0x28);
+  TEST_ASSERT_EQUAL(time[1],0xD8);
+  TEST_ASSERT_EQUAL(time[2],0xFA);
   //Test DPData
   //DP 6 7 8 =A 8 9 10 =101
   //DP 1 4 = B 3 6 = 01
@@ -438,4 +438,58 @@ void test_ReceivePacket_ExpectChangeStateAfterFull(void){
   TEST_ASSERT_EQUAL(packet[6],0x5);
   TEST_ASSERT_EQUAL(stateMachine_State,STATE_CONFIG);
   TEST_ASSERT_EQUAL(packetCounter,0);
+}
+void test_InterpretCommand_STATE_SEND_AP(void){
+  //mock
+  GetCurrentCounterTim2_ExpectAndReturn(0x156);
+  CDC_Transmit_FS_ExpectAndReturn(&USB_SendData,0xF,0xf);
+  myCurrentTick=2010152;
+  myOldCounter=0;
+  myOldTick=0;
+  //set data for AP
+  //assuming these are the port we wanted
+  //AP 1 3 5 7 8 9
+  APPortArray[0]=1;
+  APPortArray[1]=3;
+  APPortArray[2]=5;
+  APPortArray[3]=7;
+  APPortArray[4]=8;
+  APPortArray[5]=9;
+  sizeofAP=6;
+  //set data for adc array
+  adc[0]=125;
+  adc[1]=3345;
+  adc[2]=789;
+  adc[3]=2120;
+  adc[4]=1145;
+  adc[5]=777;
+  adc[6]=666;
+  adc[7]=3218;
+  adc[8]=4095;
+  adc[9]=1;
+  //set state
+  stateMachine_State=STATE_SEND_AP;
+  InterpretCommand();
+  TEST_ASSERT_EQUAL(USB_SendData[0],0x11);
+  TEST_ASSERT_EQUAL(USB_SendData[1],0xD);
+  //for adc 3 848(2120)
+  TEST_ASSERT_EQUAL(USB_SendData[2],0x48);
+  TEST_ASSERT_EQUAL(USB_SendData[3],0x8);
+  //for adc 5 309(777)
+  TEST_ASSERT_EQUAL(USB_SendData[4],0x9);
+  TEST_ASSERT_EQUAL(USB_SendData[5],0x3);
+
+  //for adc 7 C92(3218)
+  TEST_ASSERT_EQUAL(USB_SendData[6],0x92);
+  TEST_ASSERT_EQUAL(USB_SendData[7],0xC);
+  //for adc 8 FFF(4095)
+  TEST_ASSERT_EQUAL(USB_SendData[8],0xFF);
+  TEST_ASSERT_EQUAL(USB_SendData[9],0xF);
+  //for adc 9 1(1)
+  TEST_ASSERT_EQUAL(USB_SendData[10],0x1);
+  TEST_ASSERT_EQUAL(USB_SendData[11],0x0);
+  //for time
+  TEST_ASSERT_EQUAL(USB_SendData[12],0x28);
+  TEST_ASSERT_EQUAL(USB_SendData[13],0xD8);
+  TEST_ASSERT_EQUAL(USB_SendData[14],0xFA);
 }
