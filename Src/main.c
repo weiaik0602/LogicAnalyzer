@@ -66,21 +66,7 @@ TIM_HandleTypeDef htim3;
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
-//uint32_t adc[10], buffer[10];  // define variables
-//volatile uint8_t ADC_ReadyFlag;
-//volatile uint16_t myOldCounter=0;
-//volatile uint16_t myCurrentCounter=0;
-//volatile uint32_t myOldTick=0;
-//volatile uint32_t myCurrentTick=0;
-//volatile uint16_t counterDiff=0;
-//volatile uint32_t tickDiff=0;
-//volatile uint8_t USB_CDC_MYSTATE=IDLE;
-//volatile uint8_t configBuffer[5];
-//uint8_t DP_GPIOA;
-//uint8_t DP_GPIOB;
-//volatile uint8_t sizeofDP;
-//volatile uint8_t DPPortArray[];
-//volatile uint8_t DPDataArray[];
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/

@@ -201,7 +201,7 @@ void SysTick_Handler(void)
 void EXTI2_IRQHandler(void)
 {
   /* USER CODE BEGIN EXTI2_IRQn 0 */
-	//log("Those pin DP4 is change!!!\n");
+	stateMachine_State=STATE_SEND_DP;
   /* USER CODE END EXTI2_IRQn 0 */
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_2);
   /* USER CODE BEGIN EXTI2_IRQn 1 */
@@ -215,7 +215,7 @@ void EXTI2_IRQHandler(void)
 void EXTI3_IRQHandler(void)
 {
   /* USER CODE BEGIN EXTI3_IRQn 0 */
-	//log("Those pin DP5 is change!!!\n");
+	stateMachine_State=STATE_SEND_DP;
   /* USER CODE END EXTI3_IRQn 0 */
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_3);
   /* USER CODE BEGIN EXTI3_IRQn 1 */
@@ -229,7 +229,7 @@ void EXTI3_IRQHandler(void)
 void EXTI4_IRQHandler(void)
 {
   /* USER CODE BEGIN EXTI4_IRQn 0 */
-	//log("Those pin DP6 is change!!!\n");
+	stateMachine_State=STATE_SEND_DP;
   /* USER CODE END EXTI4_IRQn 0 */
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_4);
   /* USER CODE BEGIN EXTI4_IRQn 1 */
@@ -247,7 +247,8 @@ void DMA1_Channel1_IRQHandler(void)
   /* USER CODE END DMA1_Channel1_IRQn 0 */
   HAL_DMA_IRQHandler(&hdma_adc1);
   /* USER CODE BEGIN DMA1_Channel1_IRQn 1 */
-  //ADC_ReadyFlag=READY;
+  ADC_DataFlag=NOT_USED;
+  stateMachine_State=STATE_SEND_AP;
   /* USER CODE END DMA1_Channel1_IRQn 1 */
 }
 
@@ -271,7 +272,7 @@ void USB_LP_CAN1_RX0_IRQHandler(void)
 void EXTI9_5_IRQHandler(void)
 {
   /* USER CODE BEGIN EXTI9_5_IRQn 0 */
-	//log("Those pin DP7~1 is change!!!\n");
+	stateMachine_State=STATE_SEND_DP;
   /* USER CODE END EXTI9_5_IRQn 0 */
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_5);
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_6);
@@ -307,12 +308,14 @@ void TIM3_IRQHandler(void)
   /* USER CODE END TIM3_IRQn 0 */
   HAL_TIM_IRQHandler(&htim3);
   /* USER CODE BEGIN TIM3_IRQn 1 */
-  //if(ADC_ReadyFlag==NOT_READY){
-	  //Not ready then read from adc through DMA(10 channel)
-	  //After that set the flag to ready
-	 // HAL_ADC_Start_DMA(&hadc1, buffer, 10);
+  if(isConfigReady==READY){
+		if(ADC_DataFlag==USED){
+			//Not ready then read from adc through DMA(10 channel)
+			//After that set the flag to ready
+			HAL_ADC_Start_DMA(&hadc1, buffer, 10);
 
-  //}
+		}
+  }
   /* USER CODE END TIM3_IRQn 1 */
 }
 
@@ -322,7 +325,7 @@ void TIM3_IRQHandler(void)
 void EXTI15_10_IRQHandler(void)
 {
   /* USER CODE BEGIN EXTI15_10_IRQn 0 */
-	//log("Those pin DP 10/15 is change!!!\n");
+	stateMachine_State=STATE_SEND_DP;
   /* USER CODE END EXTI15_10_IRQn 0 */
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_10);
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_15);
