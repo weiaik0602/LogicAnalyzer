@@ -9,6 +9,7 @@ import usb.backend.libusb0 as libusb0
 from ctypes import *
 from array import *
 
+
 # MY Define
 STATE_CONFIG = 0xc
 STATE_SEND_DP = 0xa
@@ -22,14 +23,18 @@ APData = []
 DPData = []
 DPArray = list()
 APArray = list()
-dataDP =  [[0 for x in range(1)] for y in range(10)]
-dataAP =  [[0 for x in range(1)] for y in range(10)]
+DPPlotsArray = list()
+APPlotsArray = list()
+dataDP = dict()
+dataAP = dict()
 time = zeros(0)
 TotalNumofDP=0
 TotalNumofAP=0
 DPSubplot = dict()
 APSubplot = dict()
 device = None
+dataAPArray=[[0 for x in range(1)] for y in range(5)]
+dataDPArray=[[0 for x in range(1)] for y in range(5)]
 #Function
 def findUSBNConfig():
     print("Finding USB device")
@@ -135,6 +140,18 @@ def receiveData(ret=[]):
         breakDataForDP(ret)
     if ret[-1] == STATE_SEND_AP:
         breakDataForAP(ret)
+def setAPPlots(dataAP=[],APSubplots=[]):
+    global time
+    APPlotsArray = dict()
+    for i in range(len(dataAP)):
+        APPlotsArray[i],=APSubplots[i].plot(time,dataAP[i],'b-',label=f"DP{str(i)}")
+    return APPlotsArray
+def setDPPlots(dataDP=[],DPSubplots=[]):
+    global time
+    DPPlotsArray = dict()
+    for i in range(len(dataDP)):
+        DPPlotsArray[i],=DPSubplots[i].plot(time,dataDP[i],'b-',label=f"AP{str(i)}")
+    return DPPlotsArray
 
 def updateData(self):
     global time
@@ -145,33 +162,43 @@ def updateData(self):
     global device
     global DPArray
     global APArray
+    global DPPlotsArray
+    global APPlotsArray
+    global dataAPArray
+    global dataDPArray
+    DPPlotsDictArray = dict()
+    APPlotsDictArray = dict()
     convertedAPArray=[]
     convertedDPArray=[]
     ret = device.read(0x81, 23,520)
     receiveData(ret)
     convertedAPArray=(i *0.000806 for i in APData)
     convertedDPArray=(i *3.3 for i in DPData)
-    # #appending the data into an array
+    # # #appending the data into an array
+
     for i, x in enumerate(convertedAPArray, 0):
-        dataAP[i].append(x)
+        dataAPArray[i].append(x)
+
     for i, x in enumerate(convertedDPArray, 0):
-        dataDP[i].append(x)
+        dataDPArray[i].append(x)
 
-    time = append(time,timeDiff*0.016384)
-
+    if len(time)==0:
+        time = append(time,timeDiff*0.016384)
+    else :
+        time = append(time, time[-1]+timeDiff * 0.016384)
     # #set data
-    for i in range(TotalNumofDP):
-        #print("\n0dir = " + str(dir(DPSubplot[DPArray[i]])))
-        DPSubplot[DPArray[i]]=plt.set_data(time,dataDP)
-    # for i in range(TotalNumofAP):
-    #     APSubplot[APArray[i]].set_data(time,dataAP)
+    # for i in range(TotalNumofDP):
+    #     DPSubplot[DPArray[i]]=plt.set_data(time,dataDP)
+    #for i in range(TotalNumofAP):
+    # APPlotsDictArray[0]= APSubplot[0].plot(time,dataAP,label=APArray[0])
+
     #
-    # if time[-1] >= xmax-2.00:
-    #     for i in range(TotalNumofDP):
-    #         DPSubplot[DPArray[i]].axes.set_xlim(t[-1] - xmax + 1.0, t[-1] + 1.0)
-    #     for i in range(TotalNumofAP):
-    #         APSubplot[APArray[i]].axes.set_xlim(t[-1] - xmax + 1.0, t[-1] + 1.0)
-    # return DPSubplot,APSubplot
+    if time[-1] >= xmax-10.00:
+        for i in range(TotalNumofDP):
+            DPSubplot[i].axes.set_xlim(time[-1] - xmax + 1.0, time[-1] + 1.0)
+        for i in range(TotalNumofAP):
+            APSubplot[i].axes.set_xlim(time[-1] - xmax + 1.0, time[-1] + 1.0)
+    return DPSubplot,APSubplot
 
 
 def main():
@@ -182,6 +209,9 @@ def main():
     global device
     global DPArray
     global APArray
+    global DPPlotsArray
+    global APPlotsArray
+    global dataAP
     print("Welcome to XXX\n")
     device =findUSBNConfig()
     NumofDP=keyInDP()
@@ -207,32 +237,38 @@ def main():
     for i, num in enumerate(NumofDP, 0):
         # append the str DP and the number
         DPArray.append(f"DP{str(num)}")
+        DPPlotsArray.append(f"pAP{str(num)}")
         if odd == 1:
-            DPSubplot[DPArray[i]] = plt.subplot(TotalNumofDP, 2, odd)
+            DPSubplot[i] = plt.subplot(TotalNumofDP, 2, odd)
         else:
-            DPSubplot[DPArray[i]] = plt.subplot(TotalNumofDP, 2, odd, sharex=DPSubplot[DPArray[0]])
-            plt.setp(DPSubplot[DPArray[i - 1]].get_xticklabels(), visible=False)
-        DPSubplot[DPArray[i]].set_ylim(0, 5)
-        DPSubplot[DPArray[i]].set_xlim(0, 10)
-        DPSubplot[DPArray[i]].set_ylabel(DPArray[i], rotation=0)
+            DPSubplot[i] = plt.subplot(TotalNumofDP, 2, odd, sharex=DPSubplot[0])
+            plt.setp(DPSubplot[i-1].get_xticklabels(), visible=False)
+        DPSubplot[i].set_ylim(0, 5)
+        DPSubplot[i].set_xlim(0, 10)
+        DPSubplot[i].set_ylabel(DPArray[i], rotation=0)
         odd += 2
 
     for i, num in enumerate(NumofAP, 0):
         # append the str AP and the number
         APArray.append(f"AP{str(num)}")
+        APPlotsArray.append(f"pAP{str(num)}")
         if even == 2:
-            APSubplot[APArray[i]] = plt.subplot(TotalNumofAP, 2, even)
+            APSubplot[i] = plt.subplot(TotalNumofAP, 2, even)
         else:
-            APSubplot[APArray[i]] = plt.subplot(TotalNumofAP, 2, even, sharex=APSubplot[APArray[0]])
-            plt.setp(APSubplot[APArray[i - 1]].get_xticklabels(), visible=False)
-        APSubplot[APArray[i]].set_ylim(0, 5)
-        APSubplot[APArray[i]].set_xlim(0, 10)
-        APSubplot[APArray[i]].set_ylabel(APArray[i], rotation=0)
+            APSubplot[i] = plt.subplot(TotalNumofAP, 2, even, sharex=APSubplot[0])
+            plt.setp(APSubplot[i-1].get_xticklabels(), visible=False)
+        APSubplot[i].set_ylim(0, 5)
+        APSubplot[i].set_xlim(0, 10)
+        APSubplot[i].set_ylabel(APArray[i], rotation=0)
         even += 2
-
+    APPlotsArray=setAPPlots(dataAP, APSubplot)
+    DPPlotsArray=setDPPlots(dataDP, DPSubplot)
     # set to full screen
     manager = plt.get_current_fig_manager()
     manager.window.state('zoomed')
+    plt.subplots_adjust(hspace=0)
+
+
     # send out configuration
     DPCompressedPort = PortCompressFunc(DIGITAL, NumofDP)
     APCompressedPort = PortCompressFunc(ANALOG, NumofAP)

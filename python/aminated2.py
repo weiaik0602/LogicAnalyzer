@@ -87,16 +87,18 @@ dataAP01=zeros(0)
 t=zeros(0)
 
 # set plots
-pDP00, = dp00.plot(t,dataDP00,'b-', label="DP0")
-pAP00, = ap00.plot(t,dataAP00,'g-', label="AP0")
+print(type(dp00))
+print(dp00)
+pDP00,  = dp00.plot(t,dataDP00,'b-', label="DP0")
+pAP00,  = ap00.plot(t,dataAP00,'g-', label="AP0")
 pDP01, = dp01.plot(t,dataDP01,'b-', label="DP1")
 pAP01, = ap01.plot(t,dataAP01,'g-', label="AP1")
-
+print(type(pDP00))
 # set lagends
-dp00.legend([pDP00], [pDP00.get_label()])
-ap00.legend([pAP00], [pAP00.get_label()])
-dp01.legend([pDP01], [pDP01.get_label()])
-ap01.legend([pAP01], [pAP01.get_label()])
+# dp00.legend([pDP00], [pDP00.get_label()])
+# ap00.legend([pAP00], [pAP00.get_label()])
+# dp01.legend([pDP01], [pDP01.get_label()])
+# ap01.legend([pAP01], [pAP01.get_label()])
 
 # Data Update
 xmin = 0.0
@@ -144,6 +146,7 @@ def updateData(self):
     #rtime=x     #fake the time as the interrupt time is not working
     t=append(t,x)
     x+=0.5
+    #print(type(pDP00))
     pDP00.set_data(t,dataDP00)
     pAP00.set_data(t,dataAP00)
     pDP01.set_data(t, dataDP01)
