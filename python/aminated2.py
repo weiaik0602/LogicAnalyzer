@@ -146,7 +146,7 @@ def updateData(self):
     #rtime=x     #fake the time as the interrupt time is not working
     t=append(t,x)
     x+=0.5
-    #print(type(pDP00))
+    print(type(pDP00))
     pDP00.set_data(t,dataDP00)
     pAP00.set_data(t,dataAP00)
     pDP01.set_data(t, dataDP01)

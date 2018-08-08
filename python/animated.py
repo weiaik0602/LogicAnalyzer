@@ -144,13 +144,13 @@ def setAPPlots(dataAP=[],APSubplots=[]):
     global time
     APPlotsArray = dict()
     for i in range(len(dataAP)):
-        APPlotsArray[i],=APSubplots[i].plot(time,dataAP[i],'b-',label=f"DP{str(i)}")
+        APPlotsArray[i],=APSubplots[i].plot(time,dataAP[i],'b-',label=f"AP{str(i)}")
     return APPlotsArray
 def setDPPlots(dataDP=[],DPSubplots=[]):
     global time
     DPPlotsArray = dict()
     for i in range(len(dataDP)):
-        DPPlotsArray[i],=DPSubplots[i].plot(time,dataDP[i],'b-',label=f"AP{str(i)}")
+        DPPlotsArray[i], = DPSubplots[i].plot(time, dataDP[i], 'b-', label=f"DP{str(i)}")
     return DPPlotsArray
 
 def updateData(self):
@@ -187,10 +187,10 @@ def updateData(self):
     else :
         time = append(time, time[-1]+timeDiff * 0.016384)
     # #set data
-    # for i in range(TotalNumofDP):
-    #     DPSubplot[DPArray[i]]=plt.set_data(time,dataDP)
     #for i in range(TotalNumofAP):
-    # APPlotsDictArray[0]= APSubplot[0].plot(time,dataAP,label=APArray[0])
+    print(type(APPlotsArray[0]))
+    print(list(APPlotsArray))
+    APPlotsArray[0].set_data(time,dataAP)
 
     #
     if time[-1] >= xmax-10.00:
@@ -261,6 +261,10 @@ def main():
         APSubplot[i].set_xlim(0, 10)
         APSubplot[i].set_ylabel(APArray[i], rotation=0)
         even += 2
+    for i in range(TotalNumofDP) :
+        dataDP[i]=zeros(0)
+    for i in range(TotalNumofAP) :
+        dataAP[i]=zeros(0)
     APPlotsArray=setAPPlots(dataAP, APSubplot)
     DPPlotsArray=setDPPlots(dataDP, DPSubplot)
     # set to full screen
