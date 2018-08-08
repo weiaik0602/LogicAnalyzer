@@ -12,9 +12,11 @@ volatile uint32_t myCurrentTick;
 volatile uint8_t ADC_DataFlag;
 volatile uint8_t USB_CDC_MYSTATE;
 volatile uint8_t stateMachine_State;
-volatile uint8_t configBuffer[0];
+volatile uint8_t configBuffer[10];
 uint8_t DPPortArray[0];
-uint8_t DPDataArray[0];
+uint8_t DPDataArray[2];
+uint8_t APPortArray[0];
+uint8_t APDataArray[20];
 volatile uint8_t sizeofDP;
 volatile uint8_t sizeofAP;
 volatile uint16_t counterDiff;
@@ -25,14 +27,13 @@ volatile uint8_t DPPortATable[256];
 volatile uint8_t DPPortBTable[256];
 uint8_t DPUpSize=0;
 uint8_t DPDownSize=0;
-volatile uint8_t time[0];
+volatile uint8_t time[5];
 uint8_t sizeofTimeArray;
 uint16_t DPData;
 volatile uint8_t packet[256];
 uint8_t USB_SendData[256];
 uint8_t indexCounter;
-uint8_t APPortArray[0];
-uint8_t APDataArray[0];
+
 volatile uint8_t isConfigReady=0;
 /////////////////////////////////////////
 
@@ -68,7 +69,7 @@ void TimeDiffCalculate()
 	myCurrentCounter=GetCurrentCounterTim2();
 	counterDiff=myCurrentCounter-myOldCounter;
 	tickDiff=myCurrentTick-myOldTick;
-  //myOldCounter=myCurrentCounter;
+  myOldCounter=myCurrentCounter;
 	myOldTick=myCurrentTick;
 }
 void GeneratePortBToSelectedPinsTable(uint16_t config){
@@ -131,8 +132,8 @@ void GeneratePortAToSelectedPinsTable(uint16_t config){
   }
 }
 
-uint8_t GenerateVariableSizeTime(int Diff,uint8_t* timeA){
-  memset((void*)&time[0], 0, sizeofTimeArray);
+uint8_t GenerateVariableSizeTime(uint32_t Diff,uint8_t* timeA){
+  memset((void*)&time, 0, 5);
   if(Diff<128)  //7bit
     sizeofTimeArray=1;
   else if(Diff<16384) //14bit
@@ -183,16 +184,12 @@ void InterpretCommand(){
   switch(stateMachine_State){
     case STATE_CONFIG:
       isConfigReady=NOT_READY;
-      configBuffer[0]=packet[0];
-      configBuffer[1]=packet[2];
-      configBuffer[2]=packet[3];
-      configBuffer[3]=packet[4];
-      configBuffer[4]=packet[5];
-      sizeofDP=countSetBits(configBuffer[1]<<8|configBuffer[2]);
+      memcpy((void*)configBuffer,(void*)packet,10);
+      sizeofDP=countSetBits(configBuffer[2]<<8|configBuffer[3]);
       AssignPortToArray();
-      GeneratePortAToSelectedPinsTable(configBuffer[1]<<8|configBuffer[2]);
-      GeneratePortBToSelectedPinsTable(configBuffer[1]<<8|configBuffer[2]);
-      memset((void*)&packet[0], 0, 256);
+      GeneratePortAToSelectedPinsTable(configBuffer[2]<<8|configBuffer[3]);
+      GeneratePortBToSelectedPinsTable(configBuffer[2]<<8|configBuffer[3]);
+      //memset((void*)&packet[0], 0, 256);
       stateMachine_State=STATE_IDLE;
       isConfigReady=READY;
       break;
@@ -201,34 +198,26 @@ void InterpretCommand(){
       GenerateVariableSizeTime(tickDiff,(uint8_t*)&time[0]);
       PackingDataForDP();
       uint8_t DPA[]={LOBYTE(DPData),HIBYTE(DPData)};
-      uint8_t *Sdata=(uint8_t*)malloc((sizeofTimeArray+2) );
-      Sdata=(uint8_t*)&USB_SendData;
+      uint8_t *Sdata=(uint8_t*)&USB_SendData;
       memcpy(Sdata,DPA, 2);
       memcpy(Sdata+2, (const void*)time, sizeofTimeArray);
       USB_SendData[sizeofTimeArray+2]=STATE_SEND_DP;
+
       CDC_Transmit_FS((uint8_t*)&USB_SendData,(sizeofTimeArray+3));
-      isConfigReady=1;
       stateMachine_State=STATE_IDLE;
       break;
 
     case STATE_SEND_AP:
     	if(ADC_DataFlag==NOT_USED){
-        printf("%d\n",myCurrentTick);
-        printf("%d\n",myOldTick );
 				TimeDiffCalculate();
-        printf("%d\n",tickDiff );
 				sizeofTimeArray=GenerateVariableSizeTime(tickDiff,(uint8_t*)&time[0]);
-        for(int i=0;i<sizeofTimeArray;i++){
-          printf("%x\n",time[i] );
-        }
-				sizeofAP=PackingDataForAP(configBuffer[3]<<8|configBuffer[4]);
+				sizeofAP=PackingDataForAP(configBuffer[4]<<8|configBuffer[5]);
 				int size=sizeofAP*2;
-				uint8_t *SAPdata=(uint8_t*)malloc((sizeofTimeArray+size+1));
-				SAPdata=(uint8_t*)&USB_SendData;
+				uint8_t *SAPdata=(uint8_t*)&USB_SendData;
 				memcpy(SAPdata,APDataArray,size );
 				memcpy((SAPdata+size), (const void*)time, sizeofTimeArray);
 				USB_SendData[sizeofTimeArray+size]=STATE_SEND_AP;
-				CDC_Transmit_FS((uint8_t*)&USB_SendData,(sizeofTimeArray+size));
+				CDC_Transmit_FS((uint8_t*)&USB_SendData,(sizeofTimeArray+size+1));
 				ADC_DataFlag=USED;
     	}
     	stateMachine_State=STATE_IDLE;

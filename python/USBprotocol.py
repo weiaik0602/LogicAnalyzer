@@ -7,9 +7,9 @@ from ctypes import*
 backend = usb.backend.libusb0.get_backend(find_library=lambda x: "C:\\WINDOWS\\system32\\libusb-1.0.dll")
 
 #MY Define
-OPERATION_SETPORT = 0x22
+OPERATION_SETPORT = 0xC
 DIGITAL = 0
-ANALOG  = 0xF
+ANALOG  = 0
 #MY Function
 
 def PortCompressFunc(type,array):
@@ -19,11 +19,11 @@ def PortCompressFunc(type,array):
     if type==DIGITAL :
         for x in array:
             DPArray=(DPArray)|(1<<x)
-        return DPArray|(DIGITAL<<12)
+        return DPArray
     if type==ANALOG :
         for x in array:
             APArray=(APArray)|(1<<x)
-        return APArray|(ANALOG<<12)
+        return APArray
 
 def getUpperByte(x):
     return (x & 0xFF00)>>8
@@ -80,7 +80,10 @@ TotalNumofAP=len(NumofAP)
 
 DPArray=PortCompressFunc(DIGITAL,NumofDP)
 APArray=PortCompressFunc(ANALOG,NumofAP)
-configuration=bytes([OPERATION_SETPORT,getUpperByte(DPArray),getLowerByte(DPArray),getUpperByte(APArray),getLowerByte(APArray)])
+configuration=bytes([OPERATION_SETPORT,4,getUpperByte(DPArray),getLowerByte(DPArray),getUpperByte(APArray),getLowerByte(APArray)])
 print(list(configuration))
 
-device.write(1, configuration, 100)
+device.write(1, configuration, 200)
+while True:
+    ret = device.read(0x81, 23, 520)
+    print(list(ret))

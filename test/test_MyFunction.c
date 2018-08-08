@@ -12,33 +12,35 @@ void tearDown(void)
 }
 
 
-void xtest_AssignPortToArrayDP02468(void){
-  /*Put in 0xXX 0x1 0x55 0xXX 0xXX
-  into the configBuffer*/
-  //activate DP0,2,4,6,8
-  configBuffer[1]=1;
-  configBuffer[2]=0x55;
-  AssignPortToArray();
-  TEST_ASSERT_EQUAL(DPPortArray[0],0);
-  TEST_ASSERT_EQUAL(DPPortArray[1],2);
-  TEST_ASSERT_EQUAL(DPPortArray[2],4);
-  TEST_ASSERT_EQUAL(DPPortArray[3],6);
-  TEST_ASSERT_EQUAL(DPPortArray[4],8);
-}
+// void test_AssignPortToArrayDP02468(void){
+//   /*Put in 0xXX 0x1 0x55 0xXX 0xXX
+//   into the configBuffer*/
+//   //activate DP0,2,4,6,8
+//   configBuffer[1]=1;
+//   configBuffer[2]=0x55;
+//   AssignPortToArray();
+//   TEST_ASSERT_EQUAL(DPPortArray[0],0);
+//   TEST_ASSERT_EQUAL(DPPortArray[1],2);
+//   TEST_ASSERT_EQUAL(DPPortArray[2],4);
+//   TEST_ASSERT_EQUAL(DPPortArray[3],6);
+//   TEST_ASSERT_EQUAL(DPPortArray[4],8);
+// }
+//
+// void test_AssignPortToArrayDP14678(void){
+//   /*Put in 0xXX 0x1 0xD2 0xXX 0xXX
+//   into the configBuffer*/
+//   //activate DP1,4,6,7,8
+//   configBuffer[1]=1;
+//   configBuffer[2]=0xD2;
+//   AssignPortToArray();
+//   TEST_ASSERT_EQUAL(DPPortArray[0],1);
+//   TEST_ASSERT_EQUAL(DPPortArray[1],4);
+//   TEST_ASSERT_EQUAL(DPPortArray[2],6);
+//   TEST_ASSERT_EQUAL(DPPortArray[3],7);
+//   TEST_ASSERT_EQUAL(DPPortArray[4],8);
+// }
 
-void xtest_AssignPortToArrayDP14678(void){
-  /*Put in 0xXX 0x1 0xD2 0xXX 0xXX
-  into the configBuffer*/
-  //activate DP1,4,6,7,8
-  configBuffer[1]=1;
-  configBuffer[2]=0xD2;
-  AssignPortToArray();
-  TEST_ASSERT_EQUAL(DPPortArray[0],1);
-  TEST_ASSERT_EQUAL(DPPortArray[1],4);
-  TEST_ASSERT_EQUAL(DPPortArray[2],6);
-  TEST_ASSERT_EQUAL(DPPortArray[3],7);
-  TEST_ASSERT_EQUAL(DPPortArray[4],8);
-}
+////////////////////////////////////////////
 void test_AssignPortToArrayAP14678(void){
   //activate AP1,4,6,7,8
   configBuffer[3]=1;
@@ -193,19 +195,19 @@ void test_GeneratePortAToSelectedPinsTable_GivenDP02468(void){
 
 void test_GenerateVariableSizeTimeExpect1byte(void){
   // tickDiff=33;
-  uint8_t size =GenerateVariableSizeTime(33,(uint8_t*)&time[0]);
+  sizeofTimeArray =GenerateVariableSizeTime(33,(uint8_t*)&time[0]);
   //When the diff is <128,1 byte is enough
-  TEST_ASSERT_EQUAL(size,1);
+  TEST_ASSERT_EQUAL(sizeofTimeArray,1);
   TEST_ASSERT_EQUAL(time[0],33);
   TEST_ASSERT_EQUAL(time[1],0);
 }
 void test_GenerateVariableSizeTimeExpect3byte(void){
   // tickDiff=1564852;
-  uint8_t size =GenerateVariableSizeTime(1564852,(uint8_t*)&time[0]);
+  sizeofTimeArray =GenerateVariableSizeTime(1564852,(uint8_t*)&time);
   //When the 16384<diff<2097152,3 byte is enough
   //1st byte will be 0(lower 7-bit)
   //1564852=0001 0111 1110 0000 1011 0100
-  TEST_ASSERT_EQUAL(size,3);
+  TEST_ASSERT_EQUAL(sizeofTimeArray,3);
   TEST_ASSERT_EQUAL(time[0],0x34);
   //2nd byte = 1(medium 7-bit)
   TEST_ASSERT_EQUAL(time[1],0xC1);
@@ -435,28 +437,14 @@ void test_ReceivePacket_ExpectChangeStateAfterFull(void){
 void test_InterpretCommand_STATE_SEND_AP(void){
   //mock
   GetCurrentCounterTim2_ExpectAndReturn(0x156);
-  CDC_Transmit_FS_ExpectAndReturn((uint8_t*)&USB_SendData,0xF,0xf);
-  myCurrentTick=2010152;
-
-  myOldCounter=0;
-  myOldTick=0;
-
+  CDC_Transmit_FS_ExpectAndReturn((uint8_t*)&USB_SendData,0x10,0xf);
   //tickDiff=2010152;
   //set data for AP
   //assuming these are the port we wanted
-  //AP 1 3 5 7 8 9
-  // APPortArray[0]=1;
-  // APPortArray[1]=3;
-  // APPortArray[2]=5;
-  // APPortArray[3]=7;
-  // APPortArray[4]=8;
-  // APPortArray[5]=9;
-  // sizeofAP=6;
+  myCurrentTick=2010152;
+  myOldTick=0;
 
-  configBuffer[3]=3;
-  printf("1 %d\n",myCurrentTick);
-  configBuffer[4]=0xAA;
-  printf("2 %d\n",myCurrentTick);
+
   //set data for adc array
   adc[0]=125;
   adc[1]=3345;
@@ -471,6 +459,8 @@ void test_InterpretCommand_STATE_SEND_AP(void){
   //set state and flag
   ADC_DataFlag=NOT_USED;
   stateMachine_State=STATE_SEND_AP;
+  configBuffer[4]=0x3;
+  configBuffer[5]=0xAA;
   InterpretCommand();
   //for adc 1 D11(3345)
   TEST_ASSERT_EQUAL(USB_SendData[0],0x11);
@@ -495,5 +485,7 @@ void test_InterpretCommand_STATE_SEND_AP(void){
   TEST_ASSERT_EQUAL(USB_SendData[12],0x28);
   TEST_ASSERT_EQUAL(USB_SendData[13],0xD8);
   TEST_ASSERT_EQUAL(USB_SendData[14],0xFA);
+  //for prefix
+  TEST_ASSERT_EQUAL(USB_SendData[15],STATE_SEND_AP);
 
 }

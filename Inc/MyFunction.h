@@ -9,7 +9,7 @@ void AssignPortToArray();
 void TimeDiffCalculate();
 void GeneratePortBToSelectedPinsTable(uint16_t config);
 void GeneratePortAToSelectedPinsTable(uint16_t config);
-uint8_t GenerateVariableSizeTime(int Diff,uint8_t* timeA);
+uint8_t GenerateVariableSizeTime(uint32_t Diff,uint8_t* timeA);
 uint16_t ReadGpioxIDR(char choose);
 void PackingDataForDP();
 uint8_t PackingDataForAP(uint16_t config);
