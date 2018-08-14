@@ -151,13 +151,15 @@ def updateData(self):
     pAP00.set_data(t,dataAP00)
     pDP01.set_data(t, dataDP01)
     pAP01.set_data(t, dataAP01)
+    print(type(t))
+    print(type(dataAP01))
 
 
-    if t[-1] >= xmax-10.00:
-        pDP00.axes.set_xlim(t[-1] - xmax + 1.0, t[-1] + 1.0)
-        pAP00.axes.set_xlim(t[-1] - xmax + 1.0, t[-1] + 1.0)
-        pDP01.axes.set_xlim(t[-1] - xmax + 1.0, t[-1] + 1.0)
-        pAP01.axes.set_xlim(t[-1] - xmax + 1.0, t[-1] + 1.0)
+    if t[-1] >= xmax:
+        pDP00.axes.set_xlim(t[-1] - xmax + (xmax/10), t[-1] +  (xmax/10))
+        pAP00.axes.set_xlim(t[-1] - xmax + (xmax/10), t[-1] +  (xmax/10))
+        pDP01.axes.set_xlim(t[-1] - xmax +  (xmax/10), t[-1] +  (xmax/10))
+        pAP01.axes.set_xlim(t[-1] - xmax +  (xmax/10), t[-1] +  (xmax/10))
 
     return pDP00,pAP00,pDP01,pAP01
 

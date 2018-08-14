@@ -12,34 +12,6 @@ void tearDown(void)
 }
 
 
-// void test_AssignPortToArrayDP02468(void){
-//   /*Put in 0xXX 0x1 0x55 0xXX 0xXX
-//   into the configBuffer*/
-//   //activate DP0,2,4,6,8
-//   configBuffer[1]=1;
-//   configBuffer[2]=0x55;
-//   AssignPortToArray();
-//   TEST_ASSERT_EQUAL(DPPortArray[0],0);
-//   TEST_ASSERT_EQUAL(DPPortArray[1],2);
-//   TEST_ASSERT_EQUAL(DPPortArray[2],4);
-//   TEST_ASSERT_EQUAL(DPPortArray[3],6);
-//   TEST_ASSERT_EQUAL(DPPortArray[4],8);
-// }
-//
-// void test_AssignPortToArrayDP14678(void){
-//   /*Put in 0xXX 0x1 0xD2 0xXX 0xXX
-//   into the configBuffer*/
-//   //activate DP1,4,6,7,8
-//   configBuffer[1]=1;
-//   configBuffer[2]=0xD2;
-//   AssignPortToArray();
-//   TEST_ASSERT_EQUAL(DPPortArray[0],1);
-//   TEST_ASSERT_EQUAL(DPPortArray[1],4);
-//   TEST_ASSERT_EQUAL(DPPortArray[2],6);
-//   TEST_ASSERT_EQUAL(DPPortArray[3],7);
-//   TEST_ASSERT_EQUAL(DPPortArray[4],8);
-// }
-
 ////////////////////////////////////////////
 void test_AssignPortToArrayAP14678(void){
   //activate AP1,4,6,7,8

@@ -1,6 +1,20 @@
 import animated
-from animated import breakTimeData,breakDataForAP,breakDataForDP,updateData
+from animated import PortCompressFunc,getUpperByte,getLowerByte,\
+    breakTimeData,breakDataForAP,breakDataForDP,updateData
 
+def test_PortCompressFuncExpectedDP62():
+    array=[1,2,3,4,5]
+    #0 for digital
+    #pin 1|pin2|pin3...
+    num=PortCompressFunc(0,array)
+    assert num==62
+
+def test_PortCompressFuncExpectedAP929():
+    array=[0,5,7,8,9]
+    #1 for analog
+    #pin0|pin5|pin7...
+    num = PortCompressFunc(0, array)
+    assert num == 929
 
 def test_breakTimeDataExpected2010152():
     value = [0x80, 0x28, 0xD8, 0xFA]
@@ -10,6 +24,16 @@ def test_breakTimeDataExpected2010152():
     assert x == -4
     assert animated.timeDiff == 2010152
 
+def test_getUpperByteExpected0x03():
+    input=0x3A1
+    out=getUpperByte(input)
+    assert out == 0x03
+
+def test_getLowerByteExpected0xA1():
+    input=0x3A1
+    out=getLowerByte(input)
+    assert out == 0xA1
+
 def test_breakTimeDataExpected110():
     value = [0x80, 0x6E]
     # |0|0x6E|
@@ -17,6 +41,14 @@ def test_breakTimeDataExpected110():
     #the data is placed starting at value[-2]
     assert x == -2
     assert animated.timeDiff == 0x6E
+
+def test_breakTimeDataExpected0xFBA():
+    value = [0x7c,0x3A,0x9F]
+    # |0|0x3A|1F
+    x = breakTimeData(value)
+    #the data is placed starting at value[-2]
+    assert x == -3
+    assert animated.timeDiff == 0xFBA
 
 def test_breakDataForAPSet1():
     # for adc 1 0xD11(3345)
@@ -55,6 +87,7 @@ def test_breakDataForAPSet2():
 def test_breakDataForDPSet1():
     # 0x3E
     #0x11 1110
+    animated.TotalNumofDP=6
     USBData=[0x3E,0x28,0xD8,0xFA]
     breakDataForDP(USBData)
     assert animated.DPData[0] == 0

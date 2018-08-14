@@ -16,11 +16,11 @@ STATE_SEND_DP = 0xa
 STATE_SEND_AP = 0xb
 DIGITAL = 0
 ANALOG = 1
-xmax = 10.0
+xmax = 5.0
 #Global variable
 timeDiff = 0
-APData = []
-DPData = []
+APData = [0]
+DPData = [0]
 DPArray = list()
 APArray = list()
 DPPlotsArray = list()
@@ -85,11 +85,11 @@ def PortCompressFunc(type,array):
     if type==DIGITAL :
         for x in array:
             DPArray=(DPArray)|(1<<x)
-        return DPArray|(DIGITAL<<12)
+        return DPArray
     if type==ANALOG :
         for x in array:
             APArray=(APArray)|(1<<x)
-        return APArray|(ANALOG<<12)
+        return APArray
 def getUpperByte(x):
     return (x & 0xFF00)>>8
 def getLowerByte(x):
@@ -115,13 +115,14 @@ def breakDataForAP(USBData=[]):
     oddcounter=1
     counter=0
     max=len(USBData)+dataCounter
-    while (counter*2)<=(max):
+    while evencounter<(max):
         APData.insert(counter,USBData[oddcounter]<<8|USBData[evencounter])
         counter+=1
         evencounter += 2
         oddcounter += 2
 def breakDataForDP(USBData=[]):
     global DPData
+    global TotalNumofDP
     DPData[:]=[]
     DPtemp=0
     dataCounter = breakTimeData(USBData)
@@ -131,7 +132,7 @@ def breakDataForDP(USBData=[]):
         DPtemp = USBData[0]
     else :
         DPtemp=USBData[dataCounter]<<8|USBData[0]
-    while DPtemp:
+    for i in range (TotalNumofDP):
         DPData.insert(counter,DPtemp&0x01)
         counter+=1
         DPtemp>>=1
@@ -140,6 +141,7 @@ def receiveData(ret=[]):
         breakDataForDP(ret)
     if ret[-1] == STATE_SEND_AP:
         breakDataForAP(ret)
+    return ret[-1]
 def setAPPlots(dataAP=[],APSubplots=[]):
     global time
     APPlotsArray = dict()
@@ -166,39 +168,40 @@ def updateData(self):
     global APPlotsArray
     global dataAPArray
     global dataDPArray
+    global TotalNumofDP
+    global TotalNumofAP
     DPPlotsDictArray = dict()
     APPlotsDictArray = dict()
     convertedAPArray=[]
     convertedDPArray=[]
     ret = device.read(0x81, 23,520)
-    receiveData(ret)
+    print(list(ret))
+    state=receiveData(ret)
     convertedAPArray=(i *0.000806 for i in APData)
     convertedDPArray=(i *3.3 for i in DPData)
-    # # #appending the data into an array
-
-    for i, x in enumerate(convertedAPArray, 0):
-        dataAPArray[i].append(x)
-
-    for i, x in enumerate(convertedDPArray, 0):
-        dataDPArray[i].append(x)
-
+    # #appending the data into an array
     if len(time)==0:
-        time = append(time,timeDiff*0.016384)
+        time = append(time,0)
     else :
-        time = append(time, time[-1]+timeDiff * 0.016384)
+        time = append(time, time[-1]+round((timeDiff * 0.016384),2))
+        for i, x in enumerate(convertedAPArray, 0):
+            dataAPArray[i].append(round(x,2))
+        for i, x in enumerate(convertedDPArray, 0):
+            dataDPArray[i].append(x)
     # #set data
-    #for i in range(TotalNumofAP):
-    print(type(APPlotsArray[0]))
-    print(list(APPlotsArray))
-    APPlotsArray[0].set_data(time,dataAP)
+    for i in range(TotalNumofAP):
+        APPlotsArray[i].set_data(time, dataAPArray[i])
+    for i in range(TotalNumofDP):
+        DPPlotsArray[i].set_data(time, dataDPArray[i])
 
-    #
-    if time[-1] >= xmax-10.00:
+
+    #print(type(APPlotsArray[0]))
+    if time[-1] >= xmax:
         for i in range(TotalNumofDP):
-            DPSubplot[i].axes.set_xlim(time[-1] - xmax + 1.0, time[-1] + 1.0)
+            DPSubplot[i].axes.set_xlim(time[-1] - xmax + (xmax/100), time[-1] + (xmax/100))
         for i in range(TotalNumofAP):
-            APSubplot[i].axes.set_xlim(time[-1] - xmax + 1.0, time[-1] + 1.0)
-    return DPSubplot,APSubplot
+            APPlotsArray[i].axes.set_xlim(time[-1] - xmax + (xmax/100), time[-1] +(xmax/100))
+    return APPlotsArray,DPPlotsArray
 
 
 def main():
@@ -212,7 +215,9 @@ def main():
     global DPPlotsArray
     global APPlotsArray
     global dataAP
-    print("Welcome to XXX\n")
+    global APData
+    global DPData
+    print("Welcome to Logic Analyzer\n")
     device =findUSBNConfig()
     NumofDP=keyInDP()
     TotalNumofDP = len(NumofDP)
@@ -220,6 +225,8 @@ def main():
     NumofAP=keyInAP()
     TotalNumofAP = len(NumofAP)
 
+    APData = [0]*TotalNumofAP
+    DPData = [0]*TotalNumofDP
     # take value configured and plot graph
     # Sent for figure
     font = {'size': 9}
@@ -244,7 +251,7 @@ def main():
             DPSubplot[i] = plt.subplot(TotalNumofDP, 2, odd, sharex=DPSubplot[0])
             plt.setp(DPSubplot[i-1].get_xticklabels(), visible=False)
         DPSubplot[i].set_ylim(0, 5)
-        DPSubplot[i].set_xlim(0, 10)
+        DPSubplot[i].set_xlim(0, xmax)
         DPSubplot[i].set_ylabel(DPArray[i], rotation=0)
         odd += 2
 
@@ -258,7 +265,7 @@ def main():
             APSubplot[i] = plt.subplot(TotalNumofAP, 2, even, sharex=APSubplot[0])
             plt.setp(APSubplot[i-1].get_xticklabels(), visible=False)
         APSubplot[i].set_ylim(0, 5)
-        APSubplot[i].set_xlim(0, 10)
+        APSubplot[i].set_xlim(0, xmax)
         APSubplot[i].set_ylabel(APArray[i], rotation=0)
         even += 2
     for i in range(TotalNumofDP) :
@@ -278,7 +285,7 @@ def main():
     APCompressedPort = PortCompressFunc(ANALOG, NumofAP)
     configuration = bytes([STATE_CONFIG, 4, getUpperByte(DPCompressedPort), getLowerByte(DPCompressedPort), getUpperByte(APCompressedPort),
                            getLowerByte(APCompressedPort)])
-
+    # print(list(configuration))
     device.write(1, configuration, 200)
 
 

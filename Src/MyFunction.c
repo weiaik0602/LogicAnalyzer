@@ -189,7 +189,6 @@ void InterpretCommand(){
       AssignPortToArray();
       GeneratePortAToSelectedPinsTable(configBuffer[2]<<8|configBuffer[3]);
       GeneratePortBToSelectedPinsTable(configBuffer[2]<<8|configBuffer[3]);
-      //memset((void*)&packet[0], 0, 256);
       stateMachine_State=STATE_IDLE;
       isConfigReady=READY;
       break;
@@ -202,7 +201,6 @@ void InterpretCommand(){
       memcpy(Sdata,DPA, 2);
       memcpy(Sdata+2, (const void*)time, sizeofTimeArray);
       USB_SendData[sizeofTimeArray+2]=STATE_SEND_DP;
-
       CDC_Transmit_FS((uint8_t*)&USB_SendData,(sizeofTimeArray+3));
       stateMachine_State=STATE_IDLE;
       break;

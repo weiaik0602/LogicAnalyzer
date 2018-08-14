@@ -82,12 +82,6 @@ static void MX_TIM2_Init(void);
 extern void initialise_monitor_handles(void);
 extern uint16_t ReadGpioxIDR(char choose);
 extern uint16_t GetCurrentCounterTim2();
-//void Update_Old_Counter(void);
-//void Counter_Difference_Cal(void);
-//uint8_t countSetBits(uint16_t PortsAvailable);
-//void AssignReadDataToArray(void);
-//void AssignPortToArray(uint16_t configDP);
-
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
@@ -143,18 +137,9 @@ int main(void)
   	stateMachine_State=STATE_IDLE;
   while (1)
   {
-//	  log("%d	%d	%d	%d	%d\n",USB_Send_data[0],USB_Send_data[1]\
-//			  ,USB_Send_data[2],USB_Send_data[3],USB_Send_data[4]);
-//	  uint16_t configDP;
-//	  uint16_t Bdata=ReadGpioxIDR(B);
-//	  uint16_t Adata=ReadGpioxIDR(A);
-//	  log("%04X  %04X\n",Adata,Bdata);
-
 	  InterpretCommand();
 
-
   /* USER CODE END WHILE */
-
   /* USER CODE BEGIN 3 */
 
   }
