@@ -1,4 +1,4 @@
-#include "MyFunction.h"
+#include "LAFunction.h"
 #include "mockFunc.h"
 #include <stdio.h>
 #include <stdint.h>
@@ -32,8 +32,7 @@ uint8_t sizeofTimeArray;
 uint16_t DPData;
 volatile uint8_t packet[256];
 uint8_t USB_SendData[256];
-uint8_t indexCounter;
-
+int indexCounter=0;
 volatile uint8_t isConfigReady=0;
 /////////////////////////////////////////
 
@@ -233,12 +232,21 @@ void InterpretCommand(){
 
   }
 }
-void ReceivePacket(uint8_t* Buf, uint32_t Len)
+
+int ReceivePacket(uint8_t* Buf, uint32_t Len)
 {
-  memcpy(((void*)&packet[0]+indexCounter),Buf,Len);
-  indexCounter=indexCounter+(uint32_t)Len;
-  if(indexCounter==(packet[1]+2)){
-    stateMachine_State=packet[0];
-    indexCounter=0;
+  if (indexCounter>(packet[1]+2)){
+    indexCounter=RemovePacket(indexCounter);
   }
+  memcpy(((void*)&packet[indexCounter]),Buf,Len);
+  indexCounter+=Len;
+  stateMachine_State=packet[0];
+
+  return indexCounter;
+}
+int RemovePacket(int indexCounter)
+{
+  int length=packet[1];
+  memcpy(((void*)&packet[0]),(void*)&packet[length+2],256);
+  return indexCounter=indexCounter-2-length;
 }

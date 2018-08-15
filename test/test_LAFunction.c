@@ -1,5 +1,5 @@
 #include "unity.h"
-#include "MyFunction.h"
+#include "LAFunction.h"
 #include "mock_mockFunc.h"
 #include "FunctionHeaderTest.h"
 
@@ -378,7 +378,7 @@ void test_InterpretCommand_Send_ACK(void){
 void test_ReceivePacket_ExpectWriteDataIntoPacket(void){
   //0x5 = length of data behind
   uint8_t M1[]={STATE_CONFIG,5};
-  ReceivePacket((uint8_t*)&M1,sizeof(M1));
+  indexCounter=ReceivePacket((uint8_t*)&M1,sizeof(M1));
   //check data in packet
   TEST_ASSERT_EQUAL(packet[0],STATE_CONFIG);
   TEST_ASSERT_EQUAL(packet[1],5);
@@ -392,7 +392,7 @@ void test_ReceivePacket_ExpectChangeStateAfterFull(void){
   stateMachine_State=STATE_IDLE;
   //reset the indexCounter due to previous test
   indexCounter=0;
-  ReceivePacket((uint8_t*)&M1,sizeof(M1));
+  indexCounter=ReceivePacket((uint8_t*)&M1,sizeof(M1));
   //the data behind size =5
   uint8_t M2[]={0x1,0x2,0x3,0x4,0x5};
   ReceivePacket((uint8_t*)&M2,sizeof(M2));
@@ -404,7 +404,40 @@ void test_ReceivePacket_ExpectChangeStateAfterFull(void){
   TEST_ASSERT_EQUAL(packet[5],0x4);
   TEST_ASSERT_EQUAL(packet[6],0x5);
   TEST_ASSERT_EQUAL(stateMachine_State,STATE_CONFIG);
-  TEST_ASSERT_EQUAL(indexCounter,0);
+  TEST_ASSERT_EQUAL(indexCounter,7);
+}
+void test_ReceivePacket_MoreInputByteThanExpceted(void){
+  //0x5 = length of data behind
+  uint8_t M1[]={STATE_CONFIG,5};
+  //set state to IDLE 1st
+  stateMachine_State=STATE_IDLE;
+  //reset the indexCounter due to previous test
+  indexCounter=0;
+  indexCounter=ReceivePacket((uint8_t*)&M1,sizeof(M1));
+  //the data behind size =7
+  uint8_t M2[]={0x1,0x2,0x3,0x4,0x5,STATE_CONFIG,2};
+  ReceivePacket((uint8_t*)&M2,sizeof(M2));
+  //Expected it will store all inside
+  TEST_ASSERT_EQUAL(packet[0],STATE_CONFIG);
+  TEST_ASSERT_EQUAL(packet[1],5);
+  TEST_ASSERT_EQUAL(packet[2],0x1);
+  TEST_ASSERT_EQUAL(packet[3],0x2);
+  TEST_ASSERT_EQUAL(packet[4],0x3);
+  TEST_ASSERT_EQUAL(packet[5],0x4);
+  TEST_ASSERT_EQUAL(packet[6],0x5);
+  TEST_ASSERT_EQUAL(packet[7],STATE_CONFIG);
+  TEST_ASSERT_EQUAL(packet[8],0x2);
+  //put 1 more message for it
+  uint8_t M3[]={0x1,0x2,0x3};
+  ReceivePacket((uint8_t*)&M3,sizeof(M3));
+  //expected it will clear the previous line
+  TEST_ASSERT_EQUAL(packet[0],STATE_CONFIG);
+  TEST_ASSERT_EQUAL(packet[1],0x2);
+  TEST_ASSERT_EQUAL(packet[2],0x1);
+  TEST_ASSERT_EQUAL(packet[3],0x2);
+  TEST_ASSERT_EQUAL(packet[4],0x3);
+
+
 }
 void test_InterpretCommand_STATE_SEND_AP(void){
   //mock
