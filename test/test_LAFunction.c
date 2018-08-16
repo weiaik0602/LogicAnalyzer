@@ -1,6 +1,6 @@
 #include "unity.h"
 #include "LAFunction.h"
-#include "mock_mockFunc.h"
+#include "mock_usbd_cdc_if.h"
 #include "FunctionHeaderTest.h"
 
 void setUp(void)
@@ -295,6 +295,9 @@ void test_PackingDataForAP(void){
 
 }
 void test_InterpretCommand_CONFIGDP(void){
+  //mock
+  __disable_irq_Expect();
+  __enable_irq_Expect();
   //set data
   packet[0]=STATE_CONFIG;
   packet[1]=0xff;
@@ -306,18 +309,6 @@ void test_InterpretCommand_CONFIGDP(void){
   stateMachine_State=STATE_CONFIG;
   //function
   InterpretCommand();
-  //TestPort
-  // TEST_ASSERT_EQUAL(DPPortArray[0],1);
-  // TEST_ASSERT_EQUAL(DPPortArray[1],4);
-  // TEST_ASSERT_EQUAL(DPPortArray[2],6);
-  // TEST_ASSERT_EQUAL(DPPortArray[3],7);
-  // TEST_ASSERT_EQUAL(DPPortArray[4],8);
-  // TEST_ASSERT_EQUAL(APPortArray[0],1);
-  // TEST_ASSERT_EQUAL(APPortArray[1],4);
-  // TEST_ASSERT_EQUAL(APPortArray[2],5);
-  // TEST_ASSERT_EQUAL(APPortArray[3],6);
-  // TEST_ASSERT_EQUAL(APPortArray[4],7);
-  // TEST_ASSERT_EQUAL(APPortArray[5],8);
   //TestTable
   //uptable DP 6 7 8
   //        PA 8 9 10
@@ -338,10 +329,12 @@ void test_InterpretCommand_CONFIGDP(void){
 }
 void test_InterpretCommand_SEND_DP(void){
   //mock
+  __disable_irq_Expect();
   GetCurrentCounterTim2_ExpectAndReturn(0x156);
   ReadGpioxIDR_ExpectAndReturn(A,0x951f);
   ReadGpioxIDR_ExpectAndReturn(B,0xc6a9);
   CDC_Transmit_FS_ExpectAndReturn((uint8_t*)&USB_SendData,6,0xf);
+  __enable_irq_Expect();
   myCurrentTick=2010152;
   myOldCounter=0;
   myOldTick=0;
@@ -437,19 +430,15 @@ void test_ReceivePacket_MoreInputByteThanExpceted(void){
   TEST_ASSERT_EQUAL(packet[3],0x2);
   TEST_ASSERT_EQUAL(packet[4],0x3);
 
-
 }
+
 void test_InterpretCommand_STATE_SEND_AP(void){
   //mock
-  GetCurrentCounterTim2_ExpectAndReturn(0x156);
-  CDC_Transmit_FS_ExpectAndReturn((uint8_t*)&USB_SendData,0x10,0xf);
-  //tickDiff=2010152;
-  //set data for AP
-  //assuming these are the port we wanted
-  myCurrentTick=2010152;
-  myOldTick=0;
-
-
+  __disable_irq_Expect();
+  CDC_Transmit_FS_ExpectAndReturn((uint8_t*)&USB_SendData,0x11,0xf);
+  __enable_irq_Expect();
+  //set time
+  analogTick=8745669;
   //set data for adc array
   adc[0]=125;
   adc[1]=3345;
@@ -486,11 +475,12 @@ void test_InterpretCommand_STATE_SEND_AP(void){
   //for adc 9 1(1)
   TEST_ASSERT_EQUAL(USB_SendData[10],0x1);
   TEST_ASSERT_EQUAL(USB_SendData[11],0x0);
-  //for time
-  TEST_ASSERT_EQUAL(USB_SendData[12],0x28);
-  TEST_ASSERT_EQUAL(USB_SendData[13],0xD8);
-  TEST_ASSERT_EQUAL(USB_SendData[14],0xFA);
+  //for time=0x85 72 c5
+  TEST_ASSERT_EQUAL(USB_SendData[12],0xC5);
+  TEST_ASSERT_EQUAL(USB_SendData[13],0x72);
+  TEST_ASSERT_EQUAL(USB_SendData[14],0x85);
+  TEST_ASSERT_EQUAL(USB_SendData[15],0);
   //for prefix
-  TEST_ASSERT_EQUAL(USB_SendData[15],STATE_SEND_AP);
+  TEST_ASSERT_EQUAL(USB_SendData[16],STATE_SEND_AP);
 
 }

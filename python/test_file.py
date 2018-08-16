@@ -1,6 +1,6 @@
 import animated
 from animated import PortCompressFunc,getUpperByte,getLowerByte,\
-    breakTimeData,breakDataForAP,breakDataForDP,updateData
+    breakTimeData,breakDataForAP,breakDataForDP,updateData,breakAPTimeData
 
 def test_PortCompressFuncExpectedDP62():
     array=[1,2,3,4,5]
@@ -23,7 +23,18 @@ def test_breakTimeDataExpected2010152():
     #the data is placed starting at value[-4]
     assert x == -4
     assert animated.timeDiff == 2010152
-
+def testBreakAPTimeDataExpected59():
+    value = [59, 0, 0, 0, 11]
+    analogTick=breakAPTimeData(value)
+    assert analogTick==59
+def testBreakAPTimeDataExpected8745669():
+    value = [0xC5, 0x72, 0x85, 0, 11]
+    analogTick=breakAPTimeData(value)
+    assert analogTick==8745669
+def testBreakAPTimeDataExpected1059874529():
+    value = [0xE1, 0x66, 0x2C, 0x3F, 11]
+    analogTick=breakAPTimeData(value)
+    assert analogTick==1059874529
 def test_getUpperByteExpected0x03():
     input=0x3A1
     out=getUpperByte(input)

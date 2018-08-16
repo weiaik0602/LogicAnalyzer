@@ -42,10 +42,10 @@ extern volatile uint8_t packet[];
 extern volatile uint8_t stateMachine_State;
 extern uint8_t USB_SendData[];
 extern uint8_t APPortArray[];
-extern uint8_t APDataArray[];
+extern volatile uint8_t APDataArray[];
 extern volatile uint8_t isConfigReady;
 extern int indexCounter;
-
+extern volatile uint32_t analogTick;
 
 #define LOBYTE(x)  ((uint8_t)(x & 0x00FF))
 #define HIBYTE(x)  ((uint8_t)((x & 0xFF00) >>8))
@@ -55,10 +55,13 @@ extern int indexCounter;
 
 #define STATE_READY	1
 #define STATE_NOT_READY	0
+#define STATE_CHANGE_APP  0x9
 #define STATE_SEND_DP 0xa
 #define STATE_SEND_AP 0xb
 #define STATE_CONFIG 0xc
 #define STATE_SEND_ACK 0xd
+#define STATE_SEND_APP 0xe
+
 #define STATE_IDLE 0xF
 
 #define USED 0

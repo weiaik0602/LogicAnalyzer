@@ -308,12 +308,13 @@ void TIM3_IRQHandler(void)
   /* USER CODE END TIM3_IRQn 0 */
   HAL_TIM_IRQHandler(&htim3);
   /* USER CODE BEGIN TIM3_IRQn 1 */
+  analogTick++;
   if(isConfigReady==READY){
 		if(ADC_DataFlag==USED){
 			//Not ready then read from adc through DMA(10 channel)
 			//After that set the flag to ready
-			HAL_ADC_Start_DMA(&hadc1, buffer, 10);
-
+			HAL_ADC_Start_DMA(&hadc1, &(buffer[0]), 10);
+			ADC_DataFlag=NOT_USED;
 		}
   }
   /* USER CODE END TIM3_IRQn 1 */

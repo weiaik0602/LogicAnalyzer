@@ -12,13 +12,17 @@ from array import *
 
 # MY Define
 STATE_CONFIG = 0xc
+STATE_CHANGE_APP = 0x9
 STATE_SEND_DP = 0xa
 STATE_SEND_AP = 0xb
+STATE_ASK_APP =0xe
 DIGITAL = 0
 ANALOG = 1
 xmax = 5.0
 #Global variable
 timeDiff = 0
+analogTick=0
+APPeriod=0
 APData = [0]
 DPData = [0]
 DPArray = list()
@@ -27,7 +31,8 @@ DPPlotsArray = list()
 APPlotsArray = list()
 dataDP = dict()
 dataAP = dict()
-time = zeros(0)
+DPtime = zeros(0)
+APtime = zeros(0)
 TotalNumofDP=0
 TotalNumofAP=0
 DPSubplot = dict()
@@ -56,12 +61,12 @@ def keyInDP():
         try:
             DP = float(DP)
             DP = int(DP)
-            print("value stored!!!")
         # if not come out from the loop
         except:
             print("all the port taken")
             break
-        NumofDP.append(int(DP))
+        if DP<10:
+            NumofDP.append(int(DP))
     return NumofDP
 def keyInAP():
     print("Key in the AP port you wish to use(0~9)")
@@ -71,13 +76,27 @@ def keyInAP():
         try:
             AP = float(AP)
             AP = int(AP)
-            print("value stored!!!")
         # if not come out from the loop
         except:
             print("all the port taken")
             break
-        NumofAP.append(int(AP))
+        if AP<10:
+            NumofAP.append(int(AP))
     return NumofAP
+def keyInAPPeriod():
+    print("Key in the AP period you wish to use")
+    APPeriod=input()
+    APPeriod = float(APPeriod)
+    APPeriod = int(APPeriod)
+    return APPeriod
+def askDefaultAPPeriod():
+    global device
+    data = bytes([STATE_ASK_APP, 1,0])
+    # print(list(configuration))
+    device.write(1, data, 200)
+    ret=device.read(0x81, 2,50)
+    if ret[1]==STATE_ASK_APP:
+        return ret[0]
 def PortCompressFunc(type,array):
     DPArray=0
     APArray=0
@@ -107,10 +126,15 @@ def breakTimeData(value=[]):
             n-=1
             break
     return (n)
+def breakAPTimeData(value=[]):
+    analogTick=value[-2]<<24|value[-3]<<16|value[-4]<<8|value[-5]<<0
+    return analogTick
 def breakDataForAP(USBData=[]):
     global APData
+    global analogTick
     APData[:]=[]
-    dataCounter=breakTimeData(USBData)
+    dataCounter=-5
+    analogTick=breakAPTimeData(USBData)
     evencounter=0
     oddcounter=1
     counter=0
@@ -143,20 +167,20 @@ def receiveData(ret=[]):
         breakDataForAP(ret)
     return ret[-1]
 def setAPPlots(dataAP=[],APSubplots=[]):
-    global time
+    global APtime
     APPlotsArray = dict()
     for i in range(len(dataAP)):
-        APPlotsArray[i],=APSubplots[i].plot(time,dataAP[i],'b-',label=f"AP{str(i)}")
+        APPlotsArray[i],=APSubplots[i].plot(APtime,dataAP[i],'b-',label=f"AP{str(i)}")
     return APPlotsArray
 def setDPPlots(dataDP=[],DPSubplots=[]):
-    global time
+    global DPtime
     DPPlotsArray = dict()
     for i in range(len(dataDP)):
-        DPPlotsArray[i], = DPSubplots[i].plot(time, dataDP[i], 'b-', label=f"DP{str(i)}")
+        DPPlotsArray[i], = DPSubplots[i].plot(DPtime, dataDP[i], 'b-', label=f"DP{str(i)}")
     return DPPlotsArray
 
 def updateData(self):
-    global time
+    global DPtime
     global dataDP
     global dataAP
     global DPSubplot
@@ -170,37 +194,43 @@ def updateData(self):
     global dataDPArray
     global TotalNumofDP
     global TotalNumofAP
+    global APtime
     DPPlotsDictArray = dict()
     APPlotsDictArray = dict()
     convertedAPArray=[]
     convertedDPArray=[]
     ret = device.read(0x81, 23,520)
-    print(list(ret))
     state=receiveData(ret)
     convertedAPArray=(i *0.000806 for i in APData)
     convertedDPArray=(i *3.3 for i in DPData)
     # #appending the data into an array
-    if len(time)==0:
-        time = append(time,0)
+
+    if len(APtime)==0:
+        APtime = append(APtime,0)
     else :
-        time = append(time, time[-1]+round((timeDiff * 0.016384),2))
+        APtime = append(APtime, (analogTick*0.5))
         for i, x in enumerate(convertedAPArray, 0):
             dataAPArray[i].append(round(x,2))
+    # print(list(dataAPArray[0]))
+
+    if len(DPtime)==0:
+        DPtime = append(DPtime,0)
+    else :
+        DPtime = append(DPtime, DPtime[-1]+round((timeDiff * 0.016384),2))
         for i, x in enumerate(convertedDPArray, 0):
             dataDPArray[i].append(x)
     # #set data
     for i in range(TotalNumofAP):
-        APPlotsArray[i].set_data(time, dataAPArray[i])
+        APPlotsArray[i].set_data(APtime, dataAPArray[i])
     for i in range(TotalNumofDP):
-        DPPlotsArray[i].set_data(time, dataDPArray[i])
+        DPPlotsArray[i].set_data(DPtime, dataDPArray[i])
 
-
-    #print(type(APPlotsArray[0]))
-    if time[-1] >= xmax:
+    if DPtime[-1] >= xmax:
         for i in range(TotalNumofDP):
-            DPSubplot[i].axes.set_xlim(time[-1] - xmax + (xmax/100), time[-1] + (xmax/100))
+            DPSubplot[i].axes.set_xlim(DPtime[-1] - xmax + (xmax/100), DPtime[-1] + (xmax/100))
+    if APtime[-1] >= xmax:
         for i in range(TotalNumofAP):
-            APPlotsArray[i].axes.set_xlim(time[-1] - xmax + (xmax/100), time[-1] +(xmax/100))
+            APPlotsArray[i].axes.set_xlim(APtime[-1] - xmax + (xmax/100), APtime[-1] +(xmax/100))
     return APPlotsArray,DPPlotsArray
 
 
@@ -217,6 +247,7 @@ def main():
     global dataAP
     global APData
     global DPData
+    global APPeriod
     print("Welcome to Logic Analyzer\n")
     device =findUSBNConfig()
     NumofDP=keyInDP()
@@ -224,6 +255,10 @@ def main():
 
     NumofAP=keyInAP()
     TotalNumofAP = len(NumofAP)
+
+    APPeriod=askDefaultAPPeriod()
+    print("Currently the period for AP is ",APPeriod)
+    APPeriod=keyInAPPeriod()
 
     APData = [0]*TotalNumofAP
     DPData = [0]*TotalNumofDP
@@ -283,8 +318,8 @@ def main():
     # send out configuration
     DPCompressedPort = PortCompressFunc(DIGITAL, NumofDP)
     APCompressedPort = PortCompressFunc(ANALOG, NumofAP)
-    configuration = bytes([STATE_CONFIG, 4, getUpperByte(DPCompressedPort), getLowerByte(DPCompressedPort), getUpperByte(APCompressedPort),
-                           getLowerByte(APCompressedPort)])
+    configuration = bytes([STATE_CONFIG, 5, getUpperByte(DPCompressedPort), getLowerByte(DPCompressedPort),\
+                           getUpperByte(APCompressedPort),getLowerByte(APCompressedPort),APPeriod])
     # print(list(configuration))
     device.write(1, configuration, 200)
 

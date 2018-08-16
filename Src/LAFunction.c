@@ -1,5 +1,5 @@
 #include "LAFunction.h"
-#include "mockFunc.h"
+#include "usbd_cdc_if.h"
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -16,7 +16,7 @@ volatile uint8_t configBuffer[10];
 uint8_t DPPortArray[0];
 uint8_t DPDataArray[2];
 uint8_t APPortArray[0];
-uint8_t APDataArray[20];
+volatile uint8_t APDataArray[20];
 volatile uint8_t sizeofDP;
 volatile uint8_t sizeofAP;
 volatile uint16_t counterDiff;
@@ -34,6 +34,8 @@ volatile uint8_t packet[256];
 uint8_t USB_SendData[256];
 int indexCounter=0;
 volatile uint8_t isConfigReady=0;
+volatile uint32_t analogTick=0;
+volatile uint16_t analogPeriod=50;
 /////////////////////////////////////////
 
 
@@ -179,60 +181,6 @@ uint8_t PackingDataForAP(uint16_t config){
   return size;
 }
 
-void InterpretCommand(){
-  switch(stateMachine_State){
-    case STATE_CONFIG:
-      isConfigReady=NOT_READY;
-      memcpy((void*)configBuffer,(void*)packet,10);
-      sizeofDP=countSetBits(configBuffer[2]<<8|configBuffer[3]);
-      AssignPortToArray();
-      GeneratePortAToSelectedPinsTable(configBuffer[2]<<8|configBuffer[3]);
-      GeneratePortBToSelectedPinsTable(configBuffer[2]<<8|configBuffer[3]);
-      stateMachine_State=STATE_IDLE;
-      isConfigReady=READY;
-      break;
-    case STATE_SEND_DP:
-      TimeDiffCalculate();
-      GenerateVariableSizeTime(tickDiff,(uint8_t*)&time[0]);
-      PackingDataForDP();
-      uint8_t DPA[]={LOBYTE(DPData),HIBYTE(DPData)};
-      uint8_t *Sdata=(uint8_t*)&USB_SendData;
-      memcpy(Sdata,DPA, 2);
-      memcpy(Sdata+2, (const void*)time, sizeofTimeArray);
-      USB_SendData[sizeofTimeArray+2]=STATE_SEND_DP;
-      CDC_Transmit_FS((uint8_t*)&USB_SendData,(sizeofTimeArray+3));
-      stateMachine_State=STATE_IDLE;
-      break;
-
-    case STATE_SEND_AP:
-    	if(ADC_DataFlag==NOT_USED){
-				TimeDiffCalculate();
-				sizeofTimeArray=GenerateVariableSizeTime(tickDiff,(uint8_t*)&time[0]);
-				sizeofAP=PackingDataForAP(configBuffer[4]<<8|configBuffer[5]);
-				int size=sizeofAP*2;
-				uint8_t *SAPdata=(uint8_t*)&USB_SendData;
-				memcpy(SAPdata,APDataArray,size );
-				memcpy((SAPdata+size), (const void*)time, sizeofTimeArray);
-				USB_SendData[sizeofTimeArray+size]=STATE_SEND_AP;
-				CDC_Transmit_FS((uint8_t*)&USB_SendData,(sizeofTimeArray+size+1));
-				ADC_DataFlag=USED;
-    	}
-    	stateMachine_State=STATE_IDLE;
-      break;
-
-    case STATE_SEND_ACK:
-      USB_SendData[0]=STATE_SEND_ACK;
-      USB_SendData[1]=0;
-      CDC_Transmit_FS((uint8_t*)&USB_SendData,2);
-      stateMachine_State=STATE_IDLE;
-      break;
-
-    case STATE_IDLE:
-      break;
-
-  }
-}
-
 int ReceivePacket(uint8_t* Buf, uint32_t Len)
 {
   if (indexCounter>(packet[1]+2)){
@@ -249,4 +197,95 @@ int RemovePacket(int indexCounter)
   int length=packet[1];
   memcpy(((void*)&packet[0]),(void*)&packet[length+2],256);
   return indexCounter=indexCounter-2-length;
+}
+void Configuration(){
+  isConfigReady=NOT_READY;
+  memcpy((void*)configBuffer,(void*)packet,10);
+  sizeofDP=countSetBits(configBuffer[2]<<8|configBuffer[3]);
+  GeneratePortAToSelectedPinsTable(configBuffer[2]<<8|configBuffer[3]);
+  GeneratePortBToSelectedPinsTable(configBuffer[2]<<8|configBuffer[3]);
+  analogPeriod=configBuffer[6];
+  stateMachine_State=STATE_IDLE;
+  isConfigReady=READY;
+}
+void SendDP(){
+  TimeDiffCalculate();
+  GenerateVariableSizeTime(tickDiff,(uint8_t*)&time[0]);
+  PackingDataForDP();
+  uint8_t DPA[]={LOBYTE(DPData),HIBYTE(DPData)};
+  uint8_t *Sdata=(uint8_t*)&USB_SendData;
+  memcpy(Sdata,DPA, 2);
+  memcpy(Sdata+2, (const void*)time, sizeofTimeArray);
+  USB_SendData[sizeofTimeArray+2]=STATE_SEND_DP;
+
+  CDC_Transmit_FS((uint8_t*)&USB_SendData,(sizeofTimeArray+3));
+  stateMachine_State=STATE_IDLE;
+}
+void SendAP(){
+  if(ADC_DataFlag==NOT_USED){
+    sizeofTimeArray=4;
+    time[0]=(analogTick&0xFF);
+    time[1]=(analogTick>>8)&0xFF;
+    time[2]=(analogTick>>16)&0xFF;
+    time[3]=(analogTick>>24)&0xFF;
+    sizeofAP=PackingDataForAP(configBuffer[4]<<8|configBuffer[5]);
+    int size=sizeofAP*2;
+    uint8_t *SAPdata=(uint8_t*)&USB_SendData;
+    memcpy(SAPdata,(const void*)APDataArray,size );
+    memcpy((SAPdata+size), (const void*)time, sizeofTimeArray);
+    USB_SendData[sizeofTimeArray+size]=STATE_SEND_AP;
+    CDC_Transmit_FS((uint8_t*)&USB_SendData,(sizeofTimeArray+size+1));
+    ADC_DataFlag=USED;
+  }
+  stateMachine_State=STATE_IDLE;
+}
+void SendAPP(){
+  uint8_t data[]={analogPeriod,STATE_SEND_APP};
+  CDC_Transmit_FS((uint8_t*)&data,2);
+  stateMachine_State=STATE_IDLE;
+}
+void ChangeAPP(){
+	analogPeriod=packet[2];
+	stateMachine_State=STATE_IDLE;
+}
+
+void InterpretCommand(){
+  switch(stateMachine_State){
+    case STATE_CONFIG:
+    	__disable_irq();
+      Configuration();
+      __enable_irq();
+      break;
+    case STATE_SEND_DP:
+    	__disable_irq();
+      SendDP();
+      __enable_irq();
+      break;
+
+    case STATE_SEND_AP:
+    	__disable_irq();
+      SendAP();
+    	__enable_irq();
+      break;
+    case STATE_SEND_APP:
+      __disable_irq();
+      SendAPP();
+      __enable_irq();
+      break;
+    case STATE_CHANGE_APP:
+    	__disable_irq();
+			ChangeAPP();
+			__enable_irq();
+			break;
+    case STATE_SEND_ACK:
+      USB_SendData[0]=STATE_SEND_ACK;
+      USB_SendData[1]=0;
+      CDC_Transmit_FS((uint8_t*)&USB_SendData,2);
+      stateMachine_State=STATE_IDLE;
+      break;
+
+    case STATE_IDLE:
+      break;
+
+  }
 }

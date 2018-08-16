@@ -6,41 +6,41 @@
   ******************************************************************************
   * This notice applies to any and all portions of this file
   * that are not between comment pairs USER CODE BEGIN and
-  * USER CODE END. Other portions of this file, whether 
+  * USER CODE END. Other portions of this file, whether
   * inserted by the user or by software development tools
   * are owned by their respective copyright owners.
   *
-  * Copyright (c) 2018 STMicroelectronics International N.V. 
+  * Copyright (c) 2018 STMicroelectronics International N.V.
   * All rights reserved.
   *
-  * Redistribution and use in source and binary forms, with or without 
+  * Redistribution and use in source and binary forms, with or without
   * modification, are permitted, provided that the following conditions are met:
   *
-  * 1. Redistribution of source code must retain the above copyright notice, 
+  * 1. Redistribution of source code must retain the above copyright notice,
   *    this list of conditions and the following disclaimer.
   * 2. Redistributions in binary form must reproduce the above copyright notice,
   *    this list of conditions and the following disclaimer in the documentation
   *    and/or other materials provided with the distribution.
-  * 3. Neither the name of STMicroelectronics nor the names of other 
-  *    contributors to this software may be used to endorse or promote products 
+  * 3. Neither the name of STMicroelectronics nor the names of other
+  *    contributors to this software may be used to endorse or promote products
   *    derived from this software without specific written permission.
-  * 4. This software, including modifications and/or derivative works of this 
+  * 4. This software, including modifications and/or derivative works of this
   *    software, must execute solely and exclusively on microcontroller or
   *    microprocessor devices manufactured by or for STMicroelectronics.
-  * 5. Redistribution and use of this software other than as permitted under 
-  *    this license is void and will automatically terminate your rights under 
-  *    this license. 
+  * 5. Redistribution and use of this software other than as permitted under
+  *    this license is void and will automatically terminate your rights under
+  *    this license.
   *
-  * THIS SOFTWARE IS PROVIDED BY STMICROELECTRONICS AND CONTRIBUTORS "AS IS" 
-  * AND ANY EXPRESS, IMPLIED OR STATUTORY WARRANTIES, INCLUDING, BUT NOT 
-  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A 
+  * THIS SOFTWARE IS PROVIDED BY STMICROELECTRONICS AND CONTRIBUTORS "AS IS"
+  * AND ANY EXPRESS, IMPLIED OR STATUTORY WARRANTIES, INCLUDING, BUT NOT
+  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
   * PARTICULAR PURPOSE AND NON-INFRINGEMENT OF THIRD PARTY INTELLECTUAL PROPERTY
-  * RIGHTS ARE DISCLAIMED TO THE FULLEST EXTENT PERMITTED BY LAW. IN NO EVENT 
+  * RIGHTS ARE DISCLAIMED TO THE FULLEST EXTENT PERMITTED BY LAW. IN NO EVENT
   * SHALL STMICROELECTRONICS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
   * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-  * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, 
-  * OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF 
-  * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
+  * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+  * OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+  * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
   * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
   * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   *
@@ -66,7 +66,8 @@ TIM_HandleTypeDef htim3;
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
-volatile uint16_t analogPeriod=500;
+
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -95,6 +96,8 @@ extern uint16_t GetCurrentCounterTim2();
   */
 int main(void)
 {
+	__disable_irq();
+	__enable_irq();
   /* USER CODE BEGIN 1 */
 	initialise_monitor_handles();
   /* USER CODE END 1 */
@@ -135,11 +138,21 @@ int main(void)
   	HAL_TIM_Base_Start_IT(&htim3);
   	log("%s","Testing!!!\n");
   	stateMachine_State=STATE_IDLE;
+  	int a=1;
+  	int counter=0;
   while (1)
   {
 	  InterpretCommand();
-
+  	//check adc problem
+//  	isConfigReady=READY;
+//  	ADC_DataFlag=USED;
+//  	printf("%d	%d\n",buffer[0],adc[0]);
+  	//test USB speed
+//	  char SAPdata[]={a,counter++,0,0,0,STATE_SEND_DP};
+//	  a=~a;
+//	  CDC_Transmit_FS((uint8_t*)&SAPdata,6);
   /* USER CODE END WHILE */
+
   /* USER CODE BEGIN 3 */
 
   }
@@ -158,7 +171,7 @@ void SystemClock_Config(void)
   RCC_ClkInitTypeDef RCC_ClkInitStruct;
   RCC_PeriphCLKInitTypeDef PeriphClkInit;
 
-    /**Initializes the CPU, AHB and APB busses clocks 
+    /**Initializes the CPU, AHB and APB busses clocks
     */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
@@ -172,7 +185,7 @@ void SystemClock_Config(void)
     _Error_Handler(__FILE__, __LINE__);
   }
 
-    /**Initializes the CPU, AHB and APB busses clocks 
+    /**Initializes the CPU, AHB and APB busses clocks
     */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
@@ -194,11 +207,11 @@ void SystemClock_Config(void)
     _Error_Handler(__FILE__, __LINE__);
   }
 
-    /**Configure the Systick interrupt time 
+    /**Configure the Systick interrupt time
     */
   HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq()/1000);
 
-    /**Configure the Systick 
+    /**Configure the Systick
     */
   HAL_SYSTICK_CLKSourceConfig(SYSTICK_CLKSOURCE_HCLK);
 
@@ -212,7 +225,7 @@ static void MX_ADC1_Init(void)
 
   ADC_ChannelConfTypeDef sConfig;
 
-    /**Common config 
+    /**Common config
     */
   hadc1.Instance = ADC1;
   hadc1.Init.ScanConvMode = ADC_SCAN_ENABLE;
@@ -226,7 +239,7 @@ static void MX_ADC1_Init(void)
     _Error_Handler(__FILE__, __LINE__);
   }
 
-    /**Configure Regular Channel 
+    /**Configure Regular Channel
     */
   sConfig.Channel = ADC_CHANNEL_0;
   sConfig.Rank = ADC_REGULAR_RANK_1;
@@ -236,7 +249,7 @@ static void MX_ADC1_Init(void)
     _Error_Handler(__FILE__, __LINE__);
   }
 
-    /**Configure Regular Channel 
+    /**Configure Regular Channel
     */
   sConfig.Channel = ADC_CHANNEL_1;
   sConfig.Rank = ADC_REGULAR_RANK_2;
@@ -245,7 +258,7 @@ static void MX_ADC1_Init(void)
     _Error_Handler(__FILE__, __LINE__);
   }
 
-    /**Configure Regular Channel 
+    /**Configure Regular Channel
     */
   sConfig.Channel = ADC_CHANNEL_2;
   sConfig.Rank = ADC_REGULAR_RANK_3;
@@ -254,7 +267,7 @@ static void MX_ADC1_Init(void)
     _Error_Handler(__FILE__, __LINE__);
   }
 
-    /**Configure Regular Channel 
+    /**Configure Regular Channel
     */
   sConfig.Channel = ADC_CHANNEL_3;
   sConfig.Rank = ADC_REGULAR_RANK_4;
@@ -263,7 +276,7 @@ static void MX_ADC1_Init(void)
     _Error_Handler(__FILE__, __LINE__);
   }
 
-    /**Configure Regular Channel 
+    /**Configure Regular Channel
     */
   sConfig.Channel = ADC_CHANNEL_4;
   sConfig.Rank = ADC_REGULAR_RANK_5;
@@ -272,7 +285,7 @@ static void MX_ADC1_Init(void)
     _Error_Handler(__FILE__, __LINE__);
   }
 
-    /**Configure Regular Channel 
+    /**Configure Regular Channel
     */
   sConfig.Channel = ADC_CHANNEL_5;
   sConfig.Rank = ADC_REGULAR_RANK_6;
@@ -281,7 +294,7 @@ static void MX_ADC1_Init(void)
     _Error_Handler(__FILE__, __LINE__);
   }
 
-    /**Configure Regular Channel 
+    /**Configure Regular Channel
     */
   sConfig.Channel = ADC_CHANNEL_6;
   sConfig.Rank = ADC_REGULAR_RANK_7;
@@ -291,7 +304,7 @@ static void MX_ADC1_Init(void)
     _Error_Handler(__FILE__, __LINE__);
   }
 
-    /**Configure Regular Channel 
+    /**Configure Regular Channel
     */
   sConfig.Channel = ADC_CHANNEL_7;
   sConfig.Rank = ADC_REGULAR_RANK_8;
@@ -300,7 +313,7 @@ static void MX_ADC1_Init(void)
     _Error_Handler(__FILE__, __LINE__);
   }
 
-    /**Configure Regular Channel 
+    /**Configure Regular Channel
     */
   sConfig.Channel = ADC_CHANNEL_8;
   sConfig.Rank = ADC_REGULAR_RANK_9;
@@ -309,7 +322,7 @@ static void MX_ADC1_Init(void)
     _Error_Handler(__FILE__, __LINE__);
   }
 
-    /**Configure Regular Channel 
+    /**Configure Regular Channel
     */
   sConfig.Channel = ADC_CHANNEL_9;
   sConfig.Rank = ADC_REGULAR_RANK_10;
@@ -364,7 +377,7 @@ static void MX_TIM3_Init(void)
   htim3.Instance = TIM3;
   htim3.Init.Prescaler = 48000;
   htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim3.Init.Period = analogPeriod;
+  htim3.Init.Period = 500;
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
@@ -388,10 +401,10 @@ static void MX_TIM3_Init(void)
 
 }
 
-/** 
+/**
   * Enable DMA controller clock
   */
-static void MX_DMA_Init(void) 
+static void MX_DMA_Init(void)
 {
   /* DMA controller clock enable */
   __HAL_RCC_DMA1_CLK_ENABLE();
@@ -403,9 +416,9 @@ static void MX_DMA_Init(void)
 
 }
 
-/** Configure pins as 
-        * Analog 
-        * Input 
+/** Configure pins as
+        * Analog
+        * Input
         * Output
         * EVENT_OUT
         * EXTI
@@ -431,9 +444,9 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : DP0_Pin DP1_Pin DP2_Pin DP3_Pin 
+  /*Configure GPIO pins : DP0_Pin DP1_Pin DP2_Pin DP3_Pin
                            DP4_Pin DP5_Pin */
-  GPIO_InitStruct.Pin = DP0_Pin|DP1_Pin|DP2_Pin|DP3_Pin 
+  GPIO_InitStruct.Pin = DP0_Pin|DP1_Pin|DP2_Pin|DP3_Pin
                           |DP4_Pin|DP5_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;
   GPIO_InitStruct.Pull = GPIO_PULLDOWN;
@@ -470,7 +483,6 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 	{
 	   adc[i] = buffer[i];  // store the values in adc[]
 	}
-	//log("channel0: %d		channel1: %d\n",adc[0],adc[1]);
 }
 uint16_t GetCurrentCounterTim2(){
 	return __HAL_TIM_GetCounter(&htim2);
@@ -508,7 +520,7 @@ void _Error_Handler(char *file, int line)
   * @retval None
   */
 void assert_failed(uint8_t* file, uint32_t line)
-{ 
+{
   /* USER CODE BEGIN 6 */
   /* User can add his own implementation to report the file name and line number,
      tex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
