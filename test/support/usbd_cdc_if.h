@@ -11,6 +11,7 @@ uint16_t ReadGpioxIDR(char choose);
 uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len);
 void __disable_irq();
 void __enable_irq();
+void setTimer3();
 /* USER CODE BEGIN EXPORTED_FUNCTIONS */
 
 /* USER CODE END EXPORTED_FUNCTIONS */

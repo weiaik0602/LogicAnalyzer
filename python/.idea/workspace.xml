@@ -2,18 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="2effa601-20e6-4de5-95ad-acd55e648b55" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/../.mxproject" beforeDir="false" afterPath="$PROJECT_DIR$/../.mxproject" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Inc/LAFunction.h" beforeDir="false" afterPath="$PROJECT_DIR$/../Inc/LAFunction.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../LogicAnalyzer.ioc" beforeDir="false" afterPath="$PROJECT_DIR$/../LogicAnalyzer.ioc" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Src/LAFunction.c" beforeDir="false" afterPath="$PROJECT_DIR$/../Src/LAFunction.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Src/main.c" beforeDir="false" afterPath="$PROJECT_DIR$/../Src/main.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Src/stm32f1xx_hal_msp.c" beforeDir="false" afterPath="$PROJECT_DIR$/../Src/stm32f1xx_hal_msp.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Src/stm32f1xx_it.c" beforeDir="false" afterPath="$PROJECT_DIR$/../Src/stm32f1xx_it.c" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.pytest_cache/v/cache/nodeids" beforeDir="false" afterPath="$PROJECT_DIR$/.pytest_cache/v/cache/nodeids" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/animated.py" beforeDir="false" afterPath="$PROJECT_DIR$/animated.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test_file.py" beforeDir="false" afterPath="$PROJECT_DIR$/test_file.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../test/test_LAFunction.c" beforeDir="false" afterPath="$PROJECT_DIR$/../test/test_LAFunction.c" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -23,13 +13,13 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="FileEditorManager">
-    <splitter split-orientation="horizontal" split-proportion="0.47247022">
+    <splitter split-orientation="horizontal" split-proportion="0.27604166">
       <split-first>
         <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
           <file leaf-file-name="USBprotocol.py" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/USBprotocol.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="88">
+                <state relative-caret-position="206">
                   <caret line="83" selection-start-line="83" selection-end-line="83" selection-end-column="26" />
                   <folding>
                     <element signature="e#0#18#0" expanded="true" />
@@ -65,8 +55,8 @@
           <file leaf-file-name="animated.py" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/animated.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="2576">
-                  <caret line="138" column="16" selection-start-line="138" selection-start-column="16" selection-end-line="138" selection-end-column="16" />
+                <state relative-caret-position="2967">
+                  <caret line="140" column="16" selection-start-line="140" selection-start-column="16" selection-end-line="140" selection-end-column="16" />
                   <folding>
                     <element signature="e#0#30#0" expanded="true" />
                   </folding>
@@ -93,15 +83,13 @@
           <file leaf-file-name="animated.py" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/animated.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="147">
-                  <caret line="323" column="39" lean-forward="true" selection-start-line="323" selection-start-column="39" selection-end-line="323" selection-end-column="39" />
+                <state relative-caret-position="285">
+                  <caret line="232" column="91" selection-start-line="232" selection-start-column="91" selection-end-line="232" selection-end-column="91" />
                   <folding>
                     <element signature="e#0#30#0" expanded="true" />
-                    <element signature="e#831#1346#0" />
-                    <element signature="e#2165#2402#0" />
-                    <element signature="e#2428#2450#0" />
-                    <element signature="e#2476#2491#0" />
-                    <element signature="e#2525#2816#0" />
+                    <element signature="e#884#1399#0" />
+                    <element signature="e#1419#1775#0" />
+                    <element signature="e#1795#2149#0" />
                   </folding>
                 </state>
               </provider>
@@ -379,14 +367,14 @@
     <layout>
       <window_info content_ui="combo" id="Project" order="0" weight="0.14732143" />
       <window_info anchor="bottom" id="TODO" order="6" />
-      <window_info anchor="bottom" id="Event Log" order="10" sideWeight="0.12946428" side_tool="true" visible="true" weight="0.3843594" />
+      <window_info anchor="bottom" id="Event Log" order="10" sideWeight="0.13095239" side_tool="true" visible="true" weight="0.103161395" />
       <window_info anchor="bottom" id="Version Control" order="9" sideWeight="0.4985119" weight="0.327787" />
       <window_info anchor="bottom" id="Python Console" order="7" />
-      <window_info active="true" anchor="bottom" x="182" y="250" width="1002" height="237" id="Run" order="2" sideWeight="0.87053573" visible="true" weight="0.3843594" />
+      <window_info active="true" anchor="bottom" x="182" y="250" width="1002" height="237" id="Run" order="2" sideWeight="0.86904764" visible="true" weight="0.103161395" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info anchor="bottom" id="Terminal" order="8" sideWeight="0.49925596" weight="0.3294509" />
       <window_info id="Favorites" order="2" side_tool="true" />
-      <window_info anchor="bottom" id="Debug" order="3" sideWeight="0.4828869" weight="0.39600664" />
+      <window_info anchor="bottom" id="Debug" order="3" sideWeight="0.73363096" weight="0.39600664" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
@@ -434,7 +422,7 @@
           </properties>
         </breakpoint>
       </default-breakpoints>
-      <option name="time" value="33" />
+      <option name="time" value="34" />
     </breakpoint-manager>
     <watches-manager>
       <configuration name="PythonConfigurationType">
@@ -663,13 +651,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/venv/Lib/site-packages/matplotlib/animation.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="213">
-          <caret line="1030" selection-start-line="1030" selection-end-line="1030" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/venv/Lib/site-packages/matplotlib/backend_bases.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="144">
@@ -694,27 +675,32 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/animated.py">
+    <entry file="file://$PROJECT_DIR$/USBprotocol.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="147">
-          <caret line="323" column="39" lean-forward="true" selection-start-line="323" selection-start-column="39" selection-end-line="323" selection-end-column="39" />
+        <state relative-caret-position="206">
+          <caret line="83" selection-start-line="83" selection-end-line="83" selection-end-column="26" />
           <folding>
-            <element signature="e#0#30#0" expanded="true" />
-            <element signature="e#831#1346#0" />
-            <element signature="e#2165#2402#0" />
-            <element signature="e#2428#2450#0" />
-            <element signature="e#2476#2491#0" />
-            <element signature="e#2525#2816#0" />
+            <element signature="e#0#18#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/USBprotocol.py">
+    <entry file="file://$PROJECT_DIR$/venv/Lib/site-packages/matplotlib/animation.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="88">
-          <caret line="83" selection-start-line="83" selection-end-line="83" selection-end-column="26" />
+        <state relative-caret-position="213">
+          <caret line="1771" selection-start-line="1771" selection-end-line="1771" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/animated.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="285">
+          <caret line="232" column="91" selection-start-line="232" selection-start-column="91" selection-end-line="232" selection-end-column="91" />
           <folding>
-            <element signature="e#0#18#0" expanded="true" />
+            <element signature="e#0#30#0" expanded="true" />
+            <element signature="e#884#1399#0" />
+            <element signature="e#1419#1775#0" />
+            <element signature="e#1795#2149#0" />
           </folding>
         </state>
       </provider>

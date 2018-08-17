@@ -296,8 +296,7 @@ void test_PackingDataForAP(void){
 }
 void test_InterpretCommand_CONFIGDP(void){
   //mock
-  __disable_irq_Expect();
-  __enable_irq_Expect();
+  setTimer3_Expect();
   //set data
   packet[0]=STATE_CONFIG;
   packet[1]=0xff;
@@ -329,12 +328,10 @@ void test_InterpretCommand_CONFIGDP(void){
 }
 void test_InterpretCommand_SEND_DP(void){
   //mock
-  __disable_irq_Expect();
   GetCurrentCounterTim2_ExpectAndReturn(0x156);
   ReadGpioxIDR_ExpectAndReturn(A,0x951f);
   ReadGpioxIDR_ExpectAndReturn(B,0xc6a9);
   CDC_Transmit_FS_ExpectAndReturn((uint8_t*)&USB_SendData,6,0xf);
-  __enable_irq_Expect();
   myCurrentTick=2010152;
   myOldCounter=0;
   myOldTick=0;
@@ -397,46 +394,44 @@ void test_ReceivePacket_ExpectChangeStateAfterFull(void){
   TEST_ASSERT_EQUAL(packet[5],0x4);
   TEST_ASSERT_EQUAL(packet[6],0x5);
   TEST_ASSERT_EQUAL(stateMachine_State,STATE_CONFIG);
-  TEST_ASSERT_EQUAL(indexCounter,7);
+  TEST_ASSERT_EQUAL(indexCounter,0);
 }
-void test_ReceivePacket_MoreInputByteThanExpceted(void){
-  //0x5 = length of data behind
-  uint8_t M1[]={STATE_CONFIG,5};
-  //set state to IDLE 1st
-  stateMachine_State=STATE_IDLE;
-  //reset the indexCounter due to previous test
-  indexCounter=0;
-  indexCounter=ReceivePacket((uint8_t*)&M1,sizeof(M1));
-  //the data behind size =7
-  uint8_t M2[]={0x1,0x2,0x3,0x4,0x5,STATE_CONFIG,2};
-  ReceivePacket((uint8_t*)&M2,sizeof(M2));
-  //Expected it will store all inside
-  TEST_ASSERT_EQUAL(packet[0],STATE_CONFIG);
-  TEST_ASSERT_EQUAL(packet[1],5);
-  TEST_ASSERT_EQUAL(packet[2],0x1);
-  TEST_ASSERT_EQUAL(packet[3],0x2);
-  TEST_ASSERT_EQUAL(packet[4],0x3);
-  TEST_ASSERT_EQUAL(packet[5],0x4);
-  TEST_ASSERT_EQUAL(packet[6],0x5);
-  TEST_ASSERT_EQUAL(packet[7],STATE_CONFIG);
-  TEST_ASSERT_EQUAL(packet[8],0x2);
-  //put 1 more message for it
-  uint8_t M3[]={0x1,0x2,0x3};
-  ReceivePacket((uint8_t*)&M3,sizeof(M3));
-  //expected it will clear the previous line
-  TEST_ASSERT_EQUAL(packet[0],STATE_CONFIG);
-  TEST_ASSERT_EQUAL(packet[1],0x2);
-  TEST_ASSERT_EQUAL(packet[2],0x1);
-  TEST_ASSERT_EQUAL(packet[3],0x2);
-  TEST_ASSERT_EQUAL(packet[4],0x3);
-
-}
+// void test_ReceivePacket_MoreInputByteThanExpceted(void){
+//   //0x5 = length of data behind
+//   uint8_t M1[]={STATE_CONFIG,5};
+//   //set state to IDLE 1st
+//   stateMachine_State=STATE_IDLE;
+//   //reset the indexCounter due to previous test
+//   indexCounter=0;
+//   indexCounter=ReceivePacket((uint8_t*)&M1,sizeof(M1));
+//   //the data behind size =7
+//   uint8_t M2[]={0x1,0x2,0x3,0x4,0x5,STATE_CONFIG,2};
+//   ReceivePacket((uint8_t*)&M2,sizeof(M2));
+//   //Expected it will store all inside
+//   TEST_ASSERT_EQUAL(packet[0],STATE_CONFIG);
+//   TEST_ASSERT_EQUAL(packet[1],5);
+//   TEST_ASSERT_EQUAL(packet[2],0x1);
+//   TEST_ASSERT_EQUAL(packet[3],0x2);
+//   TEST_ASSERT_EQUAL(packet[4],0x3);
+//   TEST_ASSERT_EQUAL(packet[5],0x4);
+//   TEST_ASSERT_EQUAL(packet[6],0x5);
+//   TEST_ASSERT_EQUAL(packet[7],STATE_CONFIG);
+//   TEST_ASSERT_EQUAL(packet[8],0x2);
+//   //put 1 more message for it
+//   uint8_t M3[]={0x1,0x2,0x3};
+//   ReceivePacket((uint8_t*)&M3,sizeof(M3));
+//   //expected it will clear the previous line
+//   TEST_ASSERT_EQUAL(packet[0],STATE_CONFIG);
+//   TEST_ASSERT_EQUAL(packet[1],0x2);
+//   TEST_ASSERT_EQUAL(packet[2],0x1);
+//   TEST_ASSERT_EQUAL(packet[3],0x2);
+//   TEST_ASSERT_EQUAL(packet[4],0x3);
+//
+// }
 
 void test_InterpretCommand_STATE_SEND_AP(void){
   //mock
-  __disable_irq_Expect();
   CDC_Transmit_FS_ExpectAndReturn((uint8_t*)&USB_SendData,0x11,0xf);
-  __enable_irq_Expect();
   //set time
   analogTick=8745669;
   //set data for adc array

@@ -55,9 +55,11 @@
 
 /* USER CODE BEGIN Includes */
 #include <stdint.h>
+
 /* USER CODE END Includes */
 
 /* Private define ------------------------------------------------------------*/
+void setTimer3();
 
 #define DP0_Pin GPIO_PIN_2
 #define DP0_GPIO_Port GPIOB

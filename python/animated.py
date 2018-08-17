@@ -38,8 +38,8 @@ TotalNumofAP=0
 DPSubplot = dict()
 APSubplot = dict()
 device = None
-dataAPArray=[[0 for x in range(1)] for y in range(5)]
-dataDPArray=[[0 for x in range(1)] for y in range(5)]
+dataAPArray=[[0 for x in range(1)] for y in range(10)]
+dataDPArray=[[0 for x in range(1)] for y in range(10)]
 #Function
 def findUSBNConfig():
     print("Finding USB device")
@@ -83,20 +83,22 @@ def keyInAP():
         if AP<10:
             NumofAP.append(int(AP))
     return NumofAP
-def keyInAPPeriod():
-    print("Key in the AP period you wish to use")
-    APPeriod=input()
-    APPeriod = float(APPeriod)
-    APPeriod = int(APPeriod)
-    return APPeriod
 def askDefaultAPPeriod():
     global device
     data = bytes([STATE_ASK_APP, 1,0])
     # print(list(configuration))
     device.write(1, data, 200)
-    ret=device.read(0x81, 2,50)
+    ret=device.read(0x81, 2,200)
     if ret[1]==STATE_ASK_APP:
         return ret[0]
+def keyInAPPeriod():
+    print("Key in the AP period you wish to use(in multiply of 10,1~256)")
+    APPeriod=input()
+    APPeriod = float(APPeriod)
+    APPeriod = int(APPeriod)
+    if APPeriod ==0:
+        APPeriod=1
+    return APPeriod
 def PortCompressFunc(type,array):
     DPArray=0
     APArray=0
@@ -195,23 +197,22 @@ def updateData(self):
     global TotalNumofDP
     global TotalNumofAP
     global APtime
+    global APPeriod
     DPPlotsDictArray = dict()
     APPlotsDictArray = dict()
     convertedAPArray=[]
     convertedDPArray=[]
-    ret = device.read(0x81, 23,520)
+    ret = device.read(0x81, 30,520)
     state=receiveData(ret)
-    convertedAPArray=(i *0.000806 for i in APData)
+    convertedAPArray=(round(i *0.000806,2) for i in APData)
     convertedDPArray=(i *3.3 for i in DPData)
     # #appending the data into an array
-
     if len(APtime)==0:
         APtime = append(APtime,0)
     else :
-        APtime = append(APtime, (analogTick*0.5))
+        APtime = append(APtime, (analogTick*(APPeriod/10)))
         for i, x in enumerate(convertedAPArray, 0):
-            dataAPArray[i].append(round(x,2))
-    # print(list(dataAPArray[0]))
+            dataAPArray[i].append(x)
 
     if len(DPtime)==0:
         DPtime = append(DPtime,0)
@@ -227,10 +228,10 @@ def updateData(self):
 
     if DPtime[-1] >= xmax:
         for i in range(TotalNumofDP):
-            DPSubplot[i].axes.set_xlim(DPtime[-1] - xmax + (xmax/100), DPtime[-1] + (xmax/100))
+            DPSubplot[i].axes.set_xlim(DPtime[-1] - xmax + (xmax/50), DPtime[-1] + (xmax/50))
     if APtime[-1] >= xmax:
         for i in range(TotalNumofAP):
-            APPlotsArray[i].axes.set_xlim(APtime[-1] - xmax + (xmax/100), APtime[-1] +(xmax/100))
+            APPlotsArray[i].axes.set_xlim(APtime[-1] - xmax + (xmax/50), APtime[-1] +(xmax/50))
     return APPlotsArray,DPPlotsArray
 
 

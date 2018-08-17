@@ -46,6 +46,7 @@ extern volatile uint8_t APDataArray[];
 extern volatile uint8_t isConfigReady;
 extern int indexCounter;
 extern volatile uint32_t analogTick;
+extern volatile uint16_t analogPeriod;
 
 #define LOBYTE(x)  ((uint8_t)(x & 0x00FF))
 #define HIBYTE(x)  ((uint8_t)((x & 0xFF00) >>8))

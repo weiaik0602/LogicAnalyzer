@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include "main.h"
 //place the global variable//
 uint16_t adc[10], buffer[10];
 volatile uint16_t myOldCounter;
@@ -33,7 +34,7 @@ uint16_t DPData;
 volatile uint8_t packet[256];
 uint8_t USB_SendData[256];
 int indexCounter=0;
-volatile uint8_t isConfigReady=0;
+volatile uint8_t isConfigReady=NOT_READY;
 volatile uint32_t analogTick=0;
 volatile uint16_t analogPeriod=50;
 /////////////////////////////////////////
@@ -183,14 +184,12 @@ uint8_t PackingDataForAP(uint16_t config){
 
 int ReceivePacket(uint8_t* Buf, uint32_t Len)
 {
-  if (indexCounter>(packet[1]+2)){
-    indexCounter=RemovePacket(indexCounter);
+  memcpy(((void*)&packet[0]+indexCounter),Buf,Len);
+  indexCounter=indexCounter+(uint32_t)Len;
+  if(indexCounter==(packet[1]+2)){
+    stateMachine_State=packet[0];
+    indexCounter=0;
   }
-  memcpy(((void*)&packet[indexCounter]),Buf,Len);
-  indexCounter+=Len;
-  stateMachine_State=packet[0];
-
-  return indexCounter;
 }
 int RemovePacket(int indexCounter)
 {
@@ -204,7 +203,7 @@ void Configuration(){
   sizeofDP=countSetBits(configBuffer[2]<<8|configBuffer[3]);
   GeneratePortAToSelectedPinsTable(configBuffer[2]<<8|configBuffer[3]);
   GeneratePortBToSelectedPinsTable(configBuffer[2]<<8|configBuffer[3]);
-  analogPeriod=configBuffer[6];
+  analogPeriod=configBuffer[6]*10;
   stateMachine_State=STATE_IDLE;
   isConfigReady=READY;
 }
@@ -252,31 +251,22 @@ void ChangeAPP(){
 void InterpretCommand(){
   switch(stateMachine_State){
     case STATE_CONFIG:
-    	__disable_irq();
       Configuration();
-      __enable_irq();
+      //Set timer to on
+      setTimer3();
       break;
     case STATE_SEND_DP:
-    	__disable_irq();
       SendDP();
-      __enable_irq();
       break;
 
     case STATE_SEND_AP:
-    	__disable_irq();
       SendAP();
-    	__enable_irq();
       break;
+
     case STATE_SEND_APP:
-      __disable_irq();
       SendAPP();
-      __enable_irq();
       break;
-    case STATE_CHANGE_APP:
-    	__disable_irq();
-			ChangeAPP();
-			__enable_irq();
-			break;
+
     case STATE_SEND_ACK:
       USB_SendData[0]=STATE_SEND_ACK;
       USB_SendData[1]=0;

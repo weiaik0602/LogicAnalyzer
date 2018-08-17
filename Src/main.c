@@ -96,8 +96,6 @@ extern uint16_t GetCurrentCounterTim2();
   */
 int main(void)
 {
-	__disable_irq();
-	__enable_irq();
   /* USER CODE BEGIN 1 */
 	initialise_monitor_handles();
   /* USER CODE END 1 */
@@ -122,7 +120,7 @@ int main(void)
   MX_GPIO_Init();
   MX_DMA_Init();
   MX_ADC1_Init();
-  MX_TIM3_Init();
+//  MX_TIM3_Init();
   MX_TIM2_Init();
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 2 */
@@ -135,11 +133,12 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   	HAL_TIM_Base_Start_IT(&htim2);
-  	HAL_TIM_Base_Start_IT(&htim3);
+//  	HAL_TIM_Base_Start_IT(&htim3);
   	log("%s","Testing!!!\n");
   	stateMachine_State=STATE_IDLE;
   	int a=1;
   	int counter=0;
+  	//setTimer3();
   while (1)
   {
 	  InterpretCommand();
@@ -336,7 +335,6 @@ static void MX_ADC1_Init(void)
 /* TIM2 init function */
 static void MX_TIM2_Init(void)
 {
-
   TIM_SlaveConfigTypeDef sSlaveConfig;
   TIM_MasterConfigTypeDef sMasterConfig;
 
@@ -377,7 +375,7 @@ static void MX_TIM3_Init(void)
   htim3.Instance = TIM3;
   htim3.Init.Prescaler = 48000;
   htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim3.Init.Period = 500;
+  htim3.Init.Period = analogPeriod;
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
@@ -483,6 +481,10 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 	{
 	   adc[i] = buffer[i];  // store the values in adc[]
 	}
+}
+void setTimer3(){
+	MX_TIM3_Init();
+	HAL_TIM_Base_Start_IT(&htim3);
 }
 uint16_t GetCurrentCounterTim2(){
 	return __HAL_TIM_GetCounter(&htim2);
