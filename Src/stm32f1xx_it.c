@@ -202,6 +202,15 @@ void EXTI2_IRQHandler(void)
 {
   /* USER CODE BEGIN EXTI2_IRQn 0 */
 	stateMachine_State=STATE_SEND_DP;
+//	log("Pin 2 changed!!!\n");
+//	TimeDiffCalculate();
+//	GenerateVariableSizeTime(tickDiff,(uint8_t*)&time[0]);
+//	PackingDataForDP();
+//	uint8_t DPA[]={LOBYTE(DPData),HIBYTE(DPData)};
+//	uint8_t *Sdata=(uint8_t*)&USB_SendData;
+//	memcpy(Sdata,DPA, 2);
+//	memcpy(Sdata+2, (const void*)time, sizeofTimeArray);
+//	USB_SendData[sizeofTimeArray+2]=STATE_SEND_DP;
   /* USER CODE END EXTI2_IRQn 0 */
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_2);
   /* USER CODE BEGIN EXTI2_IRQn 1 */
@@ -216,6 +225,7 @@ void EXTI3_IRQHandler(void)
 {
   /* USER CODE BEGIN EXTI3_IRQn 0 */
 	stateMachine_State=STATE_SEND_DP;
+	log("Pin 3 changed!!!\n");
   /* USER CODE END EXTI3_IRQn 0 */
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_3);
   /* USER CODE BEGIN EXTI3_IRQn 1 */
@@ -230,6 +240,7 @@ void EXTI4_IRQHandler(void)
 {
   /* USER CODE BEGIN EXTI4_IRQn 0 */
 	stateMachine_State=STATE_SEND_DP;
+	log("Pin 4 changed!!!\n");
   /* USER CODE END EXTI4_IRQn 0 */
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_4);
   /* USER CODE BEGIN EXTI4_IRQn 1 */
@@ -273,6 +284,7 @@ void EXTI9_5_IRQHandler(void)
 {
   /* USER CODE BEGIN EXTI9_5_IRQn 0 */
 	stateMachine_State=STATE_SEND_DP;
+	log("Pin 9~5 changed!!!\n");
   /* USER CODE END EXTI9_5_IRQn 0 */
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_5);
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_6);
@@ -327,6 +339,7 @@ void EXTI15_10_IRQHandler(void)
 {
   /* USER CODE BEGIN EXTI15_10_IRQn 0 */
 	stateMachine_State=STATE_SEND_DP;
+	log("Pin 15~10 changed!!!\n");
   /* USER CODE END EXTI15_10_IRQn 0 */
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_10);
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_15);

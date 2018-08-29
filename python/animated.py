@@ -321,7 +321,7 @@ def main():
     APCompressedPort = PortCompressFunc(ANALOG, NumofAP)
     configuration = bytes([STATE_CONFIG, 5, getUpperByte(DPCompressedPort), getLowerByte(DPCompressedPort),\
                            getUpperByte(APCompressedPort),getLowerByte(APCompressedPort),APPeriod])
-    # print(list(configuration))
+    print(list(configuration))
     device.write(1, configuration, 200)
 
 

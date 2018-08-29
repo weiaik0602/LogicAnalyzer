@@ -80,8 +80,7 @@ TotalNumofAP=len(NumofAP)
 
 DPArray=PortCompressFunc(DIGITAL,NumofDP)
 APArray=PortCompressFunc(ANALOG,NumofAP)
-configuration=bytes([OPERATION_SETPORT,4,getUpperByte(DPArray),getLowerByte(DPArray),getUpperByte(APArray),getLowerByte(APArray)])
-print(list(configuration))
+configuration=bytes([12, 5, 0, 1, 0, 1, 50])
 
 device.write(1, configuration, 200)
 while True:

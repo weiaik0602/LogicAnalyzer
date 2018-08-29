@@ -220,6 +220,16 @@ void SendDP(){
   CDC_Transmit_FS((uint8_t*)&USB_SendData,(sizeofTimeArray+3));
   stateMachine_State=STATE_IDLE;
 }
+void SendDPForIT(){
+	TimeDiffCalculate();
+	  GenerateVariableSizeTime(tickDiff,(uint8_t*)&time[0]);
+	  PackingDataForDP();
+	  uint8_t DPA[]={LOBYTE(DPData),HIBYTE(DPData)};
+	  uint8_t *Sdata=(uint8_t*)&USB_SendData;
+	  memcpy(Sdata,DPA, 2);
+	  memcpy(Sdata+2, (const void*)time, sizeofTimeArray);
+	  USB_SendData[sizeofTimeArray+2]=STATE_SEND_DP;
+}
 void SendAP(){
   if(ADC_DataFlag==NOT_USED){
     sizeofTimeArray=4;
@@ -256,7 +266,9 @@ void InterpretCommand(){
       setTimer3();
       break;
     case STATE_SEND_DP:
+    	__disable_irq();
       SendDP();
+    	__enable_irq();
       break;
 
     case STATE_SEND_AP:

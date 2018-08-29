@@ -138,18 +138,11 @@ int main(void)
   	stateMachine_State=STATE_IDLE;
   	int a=1;
   	int counter=0;
-  	//setTimer3();
+//  	setTimer3();
   while (1)
   {
 	  InterpretCommand();
-  	//check adc problem
-//  	isConfigReady=READY;
-//  	ADC_DataFlag=USED;
-//  	printf("%d	%d\n",buffer[0],adc[0]);
-  	//test USB speed
-//	  char SAPdata[]={a,counter++,0,0,0,STATE_SEND_DP};
-//	  a=~a;
-//	  CDC_Transmit_FS((uint8_t*)&SAPdata,6);
+
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
