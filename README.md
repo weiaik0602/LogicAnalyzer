@@ -36,7 +36,7 @@ AP2 -> PA2
 AP3 -> PA3  
 AP4 -> PA4  
 AP5 -> PA5  
-AP6 -> PA6  
+AP6 -> PA6   
 AP7 -> PA7  
 AP8 -> PB0  
 AP9 -> PB1  
@@ -49,5 +49,13 @@ DP4 -> PB6
 DP5 -> PB7  
 DP6 -> PA8  
 DP7 -> PA9  
-DP8 -> PA10 
+DP8 -> PA10   
 DP9 -> PA15 
+
+![Input Example](https://github.com/weiaik0602/LogicAnalyzer/blob/master/python%20input.gif)  
+Users are able to choose which DP and AP port(s) to use, both from 0 to 9. Futhermore, users can choose the speed of the AP sampling rate(in the multiplyer of 10ms). 
+In the example, DP0 and AP0 is choosen and the AP sampling time is 250ms(25*10ms).  
+![Output Example](https://github.com/weiaik0602/LogicAnalyzer/blob/master/python%20result.gif)  
+Here is the output graph where it will plot the DP0 and AP0.
+
+If you wish to know more details, you can go to [here](https://github.com/weiaik0602/LogicAnalyzer/wiki) .
