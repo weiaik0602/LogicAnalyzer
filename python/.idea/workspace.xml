@@ -1,15 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="2effa601-20e6-4de5-95ad-acd55e648b55" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/../Src/LAFunction.c" beforeDir="false" afterPath="$PROJECT_DIR$/../Src/LAFunction.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Src/main.c" beforeDir="false" afterPath="$PROJECT_DIR$/../Src/main.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Src/stm32f1xx_it.c" beforeDir="false" afterPath="$PROJECT_DIR$/../Src/stm32f1xx_it.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/USBprotocol.py" beforeDir="false" afterPath="$PROJECT_DIR$/USBprotocol.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/animated.py" beforeDir="false" afterPath="$PROJECT_DIR$/animated.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test_file.py" beforeDir="false" afterPath="$PROJECT_DIR$/test_file.py" afterDir="false" />
-    </list>
+    <list default="true" id="2effa601-20e6-4de5-95ad-acd55e648b55" name="Default" comment="" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -358,7 +350,7 @@
       <window_info anchor="bottom" id="Event Log" order="10" sideWeight="0.13224447" side_tool="true" visible="true" weight="0.30777657" />
       <window_info anchor="bottom" id="Version Control" order="9" sideWeight="0.4985119" weight="0.327787" />
       <window_info anchor="bottom" id="Python Console" order="7" />
-      <window_info active="true" anchor="bottom" x="182" y="250" width="1002" height="237" id="Run" order="2" sideWeight="0.86775553" visible="true" weight="0.30777657" />
+      <window_info anchor="bottom" x="182" y="250" width="1002" height="237" id="Run" order="2" sideWeight="0.86775553" weight="0.30777657" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info anchor="bottom" id="Terminal" order="8" sideWeight="0.49925596" weight="0.3294509" />
       <window_info id="Favorites" order="2" side_tool="true" />
